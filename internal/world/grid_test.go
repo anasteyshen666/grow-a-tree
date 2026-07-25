@@ -4,6 +4,14 @@ import "testing"
 
 func coreCorner() (col, row int) { return Cols/2 - 1, Rows/2 - 1 }
 
+// bareGrid is a fresh grid with the random water sources cleared, so growth
+// tests near the Core aren't disturbed by a puddle landing on a target cell.
+func bareGrid() *Grid {
+	g := NewGrid()
+	clearSources(g)
+	return g
+}
+
 func TestNewGridHasCore(t *testing.T) {
 	g := NewGrid()
 	col, row := coreCorner()
@@ -17,7 +25,7 @@ func TestNewGridHasCore(t *testing.T) {
 }
 
 func TestGrowRequiresAdjacency(t *testing.T) {
-	g := NewGrid()
+	g := bareGrid()
 	if g.Grow(0, 0) {
 		t.Fatal("grew a root with no adjacent network")
 	}
@@ -31,7 +39,7 @@ func TestGrowRequiresAdjacency(t *testing.T) {
 }
 
 func TestCutTurnsRootToRot(t *testing.T) {
-	g := NewGrid()
+	g := bareGrid()
 	col, row := coreCorner()
 	g.Grow(col-1, row)
 
@@ -47,7 +55,7 @@ func TestCutTurnsRootToRot(t *testing.T) {
 }
 
 func TestGrowReclaimsRot(t *testing.T) {
-	g := NewGrid()
+	g := bareGrid()
 	col, row := coreCorner()
 	g.Grow(col-1, row)
 	g.Cut(col-1, row)
@@ -72,7 +80,7 @@ func growChainLeft(g *Grid, n int) (row int, cols []int) {
 }
 
 func TestCutInMiddleDisconnectsDownstream(t *testing.T) {
-	g := NewGrid()
+	g := bareGrid()
 	row, cols := growChainLeft(g, 3) // cols[0] nearest Core ... cols[2] farthest
 
 	if !g.Cut(cols[1], row) {
@@ -87,7 +95,7 @@ func TestCutInMiddleDisconnectsDownstream(t *testing.T) {
 }
 
 func TestCannotGrowFromDeadRoot(t *testing.T) {
-	g := NewGrid()
+	g := bareGrid()
 	row, cols := growChainLeft(g, 3)
 	g.Cut(cols[1], row) // isolates cols[2]
 
@@ -100,7 +108,7 @@ func TestCannotGrowFromDeadRoot(t *testing.T) {
 }
 
 func TestGrowChainsAndRejectsOccupied(t *testing.T) {
-	g := NewGrid()
+	g := bareGrid()
 	col, row := coreCorner()
 	if !g.Grow(col-1, row) {
 		t.Fatal("first root failed")

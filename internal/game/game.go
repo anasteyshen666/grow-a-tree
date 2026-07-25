@@ -54,7 +54,7 @@ func (g *Game) Update() error {
 	for n := g.waves.Update(secondsPerTick, g.bugs.Count()); n > 0; n-- {
 		g.bugs.Spawn(g.grid, g.waves.Number())
 	}
-	g.bugs.Update(secondsPerTick, g.grid, g.res)
+	g.bugs.Update(secondsPerTick, g.grid)
 
 	if g.grid.CoreHP() <= 0 {
 		g.over = true

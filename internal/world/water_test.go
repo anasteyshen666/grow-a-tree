@@ -2,21 +2,28 @@ package world
 
 import "testing"
 
-func TestMineWaterNeedsLiveNetwork(t *testing.T) {
+// gridWithSource returns a grid with only one known water source (the random
+// spawn cleared), so tests aren't disturbed by random placement.
+func gridWithSource(sc, sr int) *Grid {
 	g := NewGrid()
-	g.sources = nil // drop the random spawn, place a known source
-
-	col0, row0 := coreCorner()
-	sc, sr := col0-2, row0 // one gap away from the Core
+	clearSources(g)
 	g.cells[sr][sc] = Water
 	g.sources = append(g.sources, &waterSource{col: sc, row: sr, amount: 100})
+	return g
+}
 
-	if got := g.MineWater(1); got != 0 {
+func TestMineWaterNeedsLiveNetwork(t *testing.T) {
+	col0, row0 := coreCorner()
+	sc, sr := col0-2, row0 // one gap away from the Core
+
+	dry := gridWithSource(sc, sr)
+	if got := dry.MineWater(1); got != 0 {
 		t.Fatalf("mined water with no adjacent network: %v", got)
 	}
 
-	g.Grow(col0-1, row0) // connected root now sits beside the source
-	if got := g.MineWater(1); got <= 0 {
+	tapped := gridWithSource(sc, sr)
+	tapped.Grow(col0-1, row0) // connected root now sits beside the source
+	if got := tapped.MineWater(1); got <= 0 {
 		t.Fatal("no water mined despite an adjacent connected root")
 	}
 }

@@ -36,10 +36,6 @@ func (g *Grid) AdjacentTarget(col, row int) (int, int, bool) {
 	return coreC, coreR, haveCore
 }
 
-// NearLiveNetwork reports whether the cell is adjacent to the Core or a
-// connected root — the reach of the network's counterattack.
-func (g *Grid) NearLiveNetwork(col, row int) bool { return g.touchesNetwork(col, row) }
-
 // IsRot reports whether the cell is rot (bug bait).
 func (g *Grid) IsRot(col, row int) bool { return g.Kind(col, row) == Rot }
 

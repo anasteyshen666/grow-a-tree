@@ -19,8 +19,10 @@ const (
 	RootEnergyCost = 8.0
 	RootRefund     = RootEnergyCost * 0.5
 
-	energyRegenPerSec = 6.0
-	waterPerEnergy    = 0.5
+	// Energy regenerates slowly; each point still drains the same water per
+	// second as before (regen*waterPerEnergy is unchanged at 3/sec).
+	energyRegenPerSec = 3.0
+	waterPerEnergy    = 1.0
 	seedsRegenPerSec  = 2.0
 )
 

@@ -11,35 +11,32 @@ type Field interface {
 	IsRot(col, row int) bool
 	EatRot(col, row int)
 	Damage(col, row, dmg int)
-	// NearLiveNetwork reports whether a Core or connected Root sits next to the
-	// cell — such bugs are within reach of the network's counterattack.
-	NearLiveNetwork(col, row int) bool
 }
 
-// EnergyBank is the player's energy, which fighting bugs drains.
-type EnergyBank interface {
-	TrySpendEnergy(v float64) bool
-}
-
-const poisonTime = 0.7 // seconds a bug lingers on rot before dying
+const poisonTime = 0.7 // seconds a bug lingers on a rot tile before eating it
 
 type Bug struct {
 	Col, Row int
 	level    int
-	hp       float64
+	eaten    int // rot tiles consumed so far
 	timer    float64
 }
 
-// update advances one bug and reports whether it died (lured onto rot).
+// update advances one bug and reports whether it died. Rot bait is the only
+// thing that kills a bug: a level-N bug must eat N rot tiles.
 func (b *Bug) update(dt float64, f Field) (dead bool) {
 	st := &levels[b.level]
 	b.timer += dt
 
-	// On bait: the bug stops, gets poisoned, and dies — consuming the rot.
+	// On bait: the bug stops, then eats the rot. Enough rot poisons it to death.
 	if f.IsRot(b.Col, b.Row) {
 		if b.timer >= poisonTime {
 			f.EatRot(b.Col, b.Row)
-			return true
+			b.eaten++
+			if b.eaten >= b.level {
+				return true
+			}
+			b.timer = 0
 		}
 		return false
 	}
