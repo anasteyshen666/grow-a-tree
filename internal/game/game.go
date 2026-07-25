@@ -34,6 +34,7 @@ func New() *Game {
 }
 
 func (g *Game) Update() error {
+	g.res.AddWater(g.grid.MineWater(secondsPerTick))
 	g.res.Update(secondsPerTick)
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {

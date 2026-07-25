@@ -9,6 +9,7 @@ const (
 	Core
 	Root
 	Rot
+	Water
 )
 
 const (
@@ -19,11 +20,17 @@ const (
 
 type Grid struct {
 	cells [Rows][Cols]CellKind
+	// connected[r][c] is true for a Core or a Root reachable from a Core through
+	// other roots. Recomputed on every change to the network (see network.go).
+	connected [Rows][Cols]bool
+	sources   []*waterSource
 }
 
 func NewGrid() *Grid {
 	g := &Grid{}
 	g.placeCore()
+	g.spawnSources()
+	g.recomputeConnectivity()
 	return g
 }
 
@@ -49,12 +56,22 @@ func (g *Grid) Kind(col, row int) CellKind {
 
 var neighbors = [4][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
 
-// touchesNetwork reports whether the cell shares an edge with a Root or Core.
+// touchesNetwork reports whether the cell shares an edge with the *live*
+// network: the Core or a root still connected to it. A disconnected root is
+// dead and cannot be built upon.
 func (g *Grid) touchesNetwork(col, row int) bool {
 	for _, d := range neighbors {
-		switch g.Kind(col+d[0], row+d[1]) {
-		case Core, Root:
+		c, r := col+d[0], row+d[1]
+		if !g.InBounds(c, r) {
+			continue
+		}
+		switch g.cells[r][c] {
+		case Core:
 			return true
+		case Root:
+			if g.connected[r][c] {
+				return true
+			}
 		}
 	}
 	return false
@@ -76,6 +93,7 @@ func (g *Grid) Grow(col, row int) bool {
 		return false
 	}
 	g.cells[row][col] = Root
+	g.recomputeConnectivity()
 	return true
 }
 
@@ -86,6 +104,7 @@ func (g *Grid) Cut(col, row int) bool {
 		return false
 	}
 	g.cells[row][col] = Rot
+	g.recomputeConnectivity()
 	return true
 }
 

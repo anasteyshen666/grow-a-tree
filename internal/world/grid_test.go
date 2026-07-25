@@ -57,6 +57,48 @@ func TestGrowReclaimsRot(t *testing.T) {
 	}
 }
 
+// growChainLeft grows n roots straight left from the Core's left edge and
+// returns the columns used (row stays at the Core's top row).
+func growChainLeft(g *Grid, n int) (row int, cols []int) {
+	col0, row0 := coreCorner()
+	for i := 1; i <= n; i++ {
+		c := col0 - i
+		if !g.Grow(c, row0) {
+			panic("chain growth failed")
+		}
+		cols = append(cols, c)
+	}
+	return row0, cols
+}
+
+func TestCutInMiddleDisconnectsDownstream(t *testing.T) {
+	g := NewGrid()
+	row, cols := growChainLeft(g, 3) // cols[0] nearest Core ... cols[2] farthest
+
+	if !g.Cut(cols[1], row) {
+		t.Fatal("cut of middle root failed")
+	}
+	if !g.IsConnected(cols[0], row) {
+		t.Fatal("root between Core and the gap should stay connected")
+	}
+	if g.IsConnected(cols[2], row) {
+		t.Fatal("root beyond the gap should be disconnected")
+	}
+}
+
+func TestCannotGrowFromDeadRoot(t *testing.T) {
+	g := NewGrid()
+	row, cols := growChainLeft(g, 3)
+	g.Cut(cols[1], row) // isolates cols[2]
+
+	if g.CanGrow(cols[2], row-1) {
+		t.Fatal("grew from a disconnected root")
+	}
+	if !g.CanGrow(cols[0], row-1) {
+		t.Fatal("could not grow from a still-connected root")
+	}
+}
+
 func TestGrowChainsAndRejectsOccupied(t *testing.T) {
 	g := NewGrid()
 	col, row := coreCorner()

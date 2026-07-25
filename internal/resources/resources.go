@@ -22,9 +22,6 @@ const (
 	energyRegenPerSec = 6.0
 	waterPerEnergy    = 0.5
 	seedsRegenPerSec  = 2.0
-
-	// Placeholder water inflow until real sources arrive (Stage 5).
-	waterTricklePerSec = 2.0
 )
 
 type Resources struct {
@@ -35,7 +32,7 @@ type Resources struct {
 
 func New() *Resources {
 	return &Resources{
-		Energy: Pool{Cur: 60, Max: 100},
+		Energy: Pool{Cur: 100, Max: 100},
 		Water:  Pool{Cur: 100, Max: 100},
 		Seeds:  Pool{Cur: 0, Max: 100},
 	}
@@ -43,7 +40,6 @@ func New() *Resources {
 
 func (r *Resources) Update(dt float64) {
 	r.Seeds.add(seedsRegenPerSec * dt)
-	r.Water.add(waterTricklePerSec * dt)
 	r.regenEnergy(dt)
 }
 
@@ -67,6 +63,11 @@ func (r *Resources) regenEnergy(dt float64) {
 // AddEnergy credits energy (clamped to Max), e.g. a refund from cutting a root.
 func (r *Resources) AddEnergy(v float64) {
 	r.Energy.add(v)
+}
+
+// AddWater credits mined water (clamped to Max).
+func (r *Resources) AddWater(v float64) {
+	r.Water.add(v)
 }
 
 // TrySpendEnergy deducts v if affordable and reports success.

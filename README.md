@@ -53,8 +53,8 @@ the stages progress.
 - [x] Stage 1 — grid and root growth (LMB)
 - [x] Stage 2 — resource economy
 - [x] Stage 3 — cutting and rot (RMB)
-- [ ] Stage 4 — network logistics (flood-fill from the Core)
-- [ ] Stage 5 — water sources
+- [x] Stage 4 — network logistics (flood-fill from the Core)
+- [x] Stage 5 — water sources
 - [ ] Stage 6 — enemies: basic AI
 - [ ] Stage 7 — waves
 - [ ] Stage 8 — combat
