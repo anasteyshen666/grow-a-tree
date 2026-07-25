@@ -33,15 +33,20 @@ func DrawResources(screen *ebiten.Image, r *resources.Resources) {
 	drawBar(screen, topY+2*rowH, "Seeds", r.Seeds, colorSeeds)
 }
 
-// DrawWaveInfo shows the current/next wave and the prep countdown (top-right).
+// DrawWaveInfo shows the current wave and its status (top-right).
 func DrawWaveInfo(screen *ebiten.Image, x, wave int, inPrep bool, prep float64) {
-	var s string
 	if inPrep {
-		s = fmt.Sprintf("Wave %d in %.0fs", wave+1, prep)
+		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Wave %d", wave+1), x, topY-2)
+		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("starts in %.0fs", prep), x, topY+rowH-2)
 	} else {
-		s = fmt.Sprintf("Wave %d", wave)
+		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Wave %d", wave), x, topY-2)
+		ebitenutil.DebugPrintAt(screen, "attacking!", x, topY+rowH-2)
 	}
-	ebitenutil.DebugPrintAt(screen, s, x, topY-2)
+}
+
+// DrawCoreHP shows the Core's health as a plain number (top-left, under the bars).
+func DrawCoreHP(screen *ebiten.Image, hp int) {
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Core HP: %d", hp), labelX, topY+3*rowH-2)
 }
 
 func drawBar(screen *ebiten.Image, y int, label string, p resources.Pool, c color.Color) {

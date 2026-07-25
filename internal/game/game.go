@@ -43,7 +43,7 @@ func (g *Game) Update() error {
 	g.res.AddWater(g.grid.MineWater(secondsPerTick))
 	g.res.Update(secondsPerTick)
 
-	for n := g.waves.Update(secondsPerTick); n > 0; n-- {
+	for n := g.waves.Update(secondsPerTick, g.bugs.Count()); n > 0; n-- {
 		g.bugs.Spawn(g.grid)
 	}
 	g.bugs.Update(secondsPerTick, g.grid)
@@ -70,6 +70,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.grid.DrawHover(screen, col, row)
 	g.bugs.Draw(screen, world.CellSize)
 	ui.DrawResources(screen, g.res)
+	ui.DrawCoreHP(screen, g.grid.CoreHP())
 	ui.DrawWaveInfo(screen, ScreenWidth-160, g.waves.Number(), g.waves.InPrep(), g.waves.PrepRemaining())
 }
 

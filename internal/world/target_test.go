@@ -37,6 +37,18 @@ func TestNextStepMovesTowardNetwork(t *testing.T) {
 	}
 }
 
+func TestCoreTakesDamage(t *testing.T) {
+	g := NewGrid()
+	if g.CoreHP() != CoreMaxHP {
+		t.Fatalf("core should start at %d HP, got %d", CoreMaxHP, g.CoreHP())
+	}
+	col0, row0 := coreCorner()
+	g.Damage(col0, row0)
+	if g.CoreHP() != CoreMaxHP-coreBiteDamage {
+		t.Fatalf("gnawing the core did not chip its HP: %d", g.CoreHP())
+	}
+}
+
 func TestDamageDestroysRootAndBreaksNetwork(t *testing.T) {
 	g := NewGrid()
 	clearSources(g)

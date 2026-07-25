@@ -30,9 +30,14 @@ func (m *Manager) Spawn(f Field) {
 }
 
 func (m *Manager) Update(dt float64, f Field) {
+	kept := m.bugs[:0]
 	for _, b := range m.bugs {
-		b.update(dt, f)
+		if b.update(dt, f) {
+			continue // died on rot bait
+		}
+		kept = append(kept, b)
 	}
+	m.bugs = kept
 }
 
 // Draw renders each bug as a square a little smaller than a cell.

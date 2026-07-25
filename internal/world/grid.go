@@ -16,6 +16,8 @@ const (
 	Cols     = 40
 	Rows     = 30
 	CellSize = 24
+
+	CoreMaxHP = 100
 )
 
 type Grid struct {
@@ -24,15 +26,20 @@ type Grid struct {
 	// other roots. Recomputed on every change to the network (see network.go).
 	connected [Rows][Cols]bool
 	sources   []*waterSource
+	coreHP    int
+	rotCount  int
 }
 
 func NewGrid() *Grid {
-	g := &Grid{}
+	g := &Grid{coreHP: CoreMaxHP}
 	g.placeCore()
 	g.spawnSources()
 	g.recomputeConnectivity()
 	return g
 }
+
+// CoreHP is the remaining health of the Core (0..CoreMaxHP).
+func (g *Grid) CoreHP() int { return g.coreHP }
 
 func (g *Grid) placeCore() {
 	col0, row0 := Cols/2-1, Rows/2-1
@@ -92,6 +99,9 @@ func (g *Grid) Grow(col, row int) bool {
 	if !g.CanGrow(col, row) {
 		return false
 	}
+	if g.cells[row][col] == Rot {
+		g.rotCount--
+	}
 	g.cells[row][col] = Root
 	g.recomputeConnectivity()
 	return true
@@ -104,6 +114,7 @@ func (g *Grid) Cut(col, row int) bool {
 		return false
 	}
 	g.cells[row][col] = Rot
+	g.rotCount++
 	g.recomputeConnectivity()
 	return true
 }
