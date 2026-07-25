@@ -1,20 +1,20 @@
 # assets
 
-Сюда лягут текстуры/спрайты, когда ты их нарисуешь (Этап 18).
+Textures/sprites will live here once they are drawn (Stage 18).
 
-Пока игра рисуется примитивами Ebiten с цветовым кодированием из ГДД
-(зелёный — энергия/корни, синий — вода, жёлтый — семена, коричневый — гниль).
-Когда появятся спрайты, отрисовка клеток меняется на `ebiten.Image`, а вся
-игровая логика остаётся нетронутой.
+For now the game is rendered with Ebiten primitives using the color coding from
+the GDD (green — energy/roots, blue — water, yellow — seeds, brown — rot). When
+sprites arrive, cell drawing switches to `ebiten.Image` while all game logic
+stays untouched.
 
-Планируемые ассеты:
-- `core.png`         — Ядро (2×2)
-- `root.png`         — сегмент корня (+ грибной вариант)
-- `rot.png`          — гниль
-- `water.png`        — источник воды
-- `bug_1..5.png`     — жуки 5 уровней
-- `plant_*.png`      — растения-спутники (батарейка, мох, терновник)
-- `spore.png`        — спора гриба
+Planned assets:
+- `core.png`      — the Core (2×2)
+- `root.png`      — a root segment (+ a mushroom variant)
+- `rot.png`       — rot
+- `water.png`     — water source
+- `bug_1..5.png`  — the 5 bug levels
+- `plant_*.png`   — companion plants (battery flower, water moss, thornbush)
+- `spore.png`     — mushroom spore
 
-Ассеты будут встраиваться в бинарник через `//go:embed`, чтобы `.exe`
-оставался самодостаточным (одним файлом).
+Assets will be embedded into the binary via `//go:embed` so the `.exe` stays
+self-contained (a single file).

@@ -2,5 +2,5 @@
 // game folder, holding the maximum wave number ever reached, shown on the
 // start screen to push the player to beat it (GDD §8).
 //
-// Fills in Этап 16.
+// Filled in Stage 16.
 package save

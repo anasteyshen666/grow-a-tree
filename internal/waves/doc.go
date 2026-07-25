@@ -2,6 +2,6 @@
 // waves, spawning bugs in batches, tracking the current wave number, and
 // scaling difficulty with the wave number (GDD §7).
 //
-// Fills in Этап 7. The wave number also drives season changes (see package
+// Filled in Stage 7. The wave number also drives season changes (see package
 // season) and the high-score record (see package save).
 package waves

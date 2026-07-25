@@ -6,6 +6,6 @@
 //   - Water  — spent to regenerate Energy. Mined from sources that deplete.
 //   - Seeds  — accumulate over time. Spent on companion plants and new Cores.
 //
-// Fills in Этап 2 (energy/water/seeds tick) and is extended by later stages
-// (sources in Этап 5, plant auras in Этап 12, seasons in Этап 14).
+// Filled in Stage 2 (energy/water/seeds tick) and extended by later stages
+// (sources in Stage 5, plant auras in Stage 12, seasons in Stage 14).
 package resources

@@ -23,7 +23,7 @@ const (
 	waterPerEnergy    = 0.5
 	seedsRegenPerSec  = 2.0
 
-	// Placeholder water inflow until real sources arrive (Этап 5).
+	// Placeholder water inflow until real sources arrive (Stage 5).
 	waterTricklePerSec = 2.0
 )
 

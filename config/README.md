@@ -1,14 +1,14 @@
 # config
 
-JSON-файлы с балансом, чтобы тюнить игру без перекомпиляции логики:
+JSON files with balance data, so the game can be tuned without recompiling logic:
 
-- `enemies.json` — статы жуков по уровням 1–5 (скорость, HP, урон, броня).
-- `plants.json`  — растения-спутники (стоимость в семенах, радиус, сила ауры).
-- `seasons.json` — модификаторы сезонов (иссыхание воды, спавн спор, заморозка,
-  броня жуков, множитель спавна).
-- `balance.json` — общие числа: стоимость роста корня, скорость регена энергии,
-  расход воды, накопление семян, длина фазы подготовки и т.д.
+- `enemies.json` — bug stats per level 1–5 (speed, HP, damage, armor).
+- `plants.json`  — companion plants (seed cost, radius, aura strength).
+- `seasons.json` — season modifiers (water drying, spore spawn, freezing,
+  bug armor, spawn multiplier).
+- `balance.json` — general numbers: root growth cost, energy regen rate,
+  water cost, seed accrual, prep phase length, etc.
 
-Файлы появятся по мере готовности соответствующих этапов (9, 12, 14 и общий
-баланс на Этапе 17). Значения по умолчанию будут дублироваться в коде, чтобы
-игра запускалась даже без внешних конфигов.
+These files appear as the matching stages are built (9, 12, 14, and general
+balance in Stage 17). Default values are mirrored in code so the game runs even
+without external configs.
