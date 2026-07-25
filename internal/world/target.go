@@ -43,14 +43,14 @@ func (g *Grid) IsRot(col, row int) bool { return g.Kind(col, row) == Rot }
 func (g *Grid) EatRot(col, row int) {
 	if g.Kind(col, row) == Rot {
 		g.cells[row][col] = Empty
-		g.rotCount--
+		g.removeRot(col, row)
 	}
 }
 
 // NextRotStep runs a BFS toward the nearest rot tile and returns the first step
 // of the shortest path. ok is false if there is no rot or no path to it.
 func (g *Grid) NextRotStep(sc, sr int) (int, int, bool) {
-	if g.rotCount == 0 {
+	if !g.hasRot() {
 		return 0, 0, false
 	}
 	var visited [Rows][Cols]bool

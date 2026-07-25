@@ -40,14 +40,21 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 				default:
 					fillCell(screen, col, row, colorRoot)
 				}
-			case Rot:
-				fillCell(screen, col, row, colorRot)
 			case Spore:
 				fillCell(screen, col, row, colorSpore)
 			}
 		}
 	}
+	g.drawRots(screen)
 	g.drawSources(screen)
+}
+
+// drawRots draws rot tiles, fading them as they age toward crumbling away.
+func (g *Grid) drawRots(screen *ebiten.Image) {
+	for _, rt := range g.rots {
+		f := 0.35 + 0.65*(rt.ttl/rotLifetime)
+		fillCell(screen, rt.col, rt.row, scale(colorRot, f))
+	}
 }
 
 func (g *Grid) drawSources(screen *ebiten.Image) {

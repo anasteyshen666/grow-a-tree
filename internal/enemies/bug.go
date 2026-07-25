@@ -16,12 +16,16 @@ type Field interface {
 	SlowsBug(col, row int) bool
 }
 
-const poisonTime = 0.7 // seconds a bug lingers on a rot tile before eating it
+const (
+	poisonTime     = 0.7 // seconds a bug lingers on a rot tile before eating it
+	poisonSlowTime = 3.0 // seconds a bug crawls at half speed after eating rot
+)
 
 type Bug struct {
 	Col, Row int
 	level    int
-	eaten    int // rot tiles consumed so far
+	eaten    int     // rot tiles consumed so far
+	poison   float64 // seconds of poison slowdown remaining
 	timer    float64
 }
 
@@ -30,8 +34,12 @@ type Bug struct {
 func (b *Bug) update(dt float64, f Field) (dead bool) {
 	st := &levels[b.level]
 	b.timer += dt
+	if b.poison > 0 {
+		b.poison -= dt
+	}
 
-	// On bait: the bug stops, then eats the rot. Enough rot poisons it to death.
+	// On bait: the bug stops, then eats the rot. Enough rot poisons it to death;
+	// otherwise it is left poisoned (slowed) as it seeks the next tile.
 	if f.IsRot(b.Col, b.Row) {
 		if b.timer >= poisonTime {
 			f.EatRot(b.Col, b.Row)
@@ -39,14 +47,18 @@ func (b *Bug) update(dt float64, f Field) (dead bool) {
 			if b.eaten >= b.level {
 				return true
 			}
+			b.poison = poisonSlowTime
 			b.timer = 0
 		}
 		return false
 	}
 
-	// Crawling next to a mushroom root is twice as slow.
+	// Crawling next to a mushroom root, or while poisoned, is twice as slow.
 	move := st.moveInterval
 	if f.SlowsBug(b.Col, b.Row) {
+		move *= 2
+	}
+	if b.poison > 0 {
 		move *= 2
 	}
 

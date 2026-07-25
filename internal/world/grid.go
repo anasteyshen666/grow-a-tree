@@ -28,7 +28,7 @@ type Grid struct {
 	connected [Rows][Cols]bool
 	sources   []*waterSource
 	coreHP    int
-	rotCount  int
+	rots      []*rotTile
 	// mushroom[r][c] marks a Root infected by a spore (GDD §4): bugs crawl past
 	// it at half speed. Spores waiting to infect a root are tracked separately.
 	mushroom   [Rows][Cols]bool
@@ -106,7 +106,7 @@ func (g *Grid) Grow(col, row int) bool {
 		return false
 	}
 	if g.cells[row][col] == Rot {
-		g.rotCount--
+		g.removeRot(col, row)
 	}
 	g.cells[row][col] = Root
 	g.recomputeConnectivity()
@@ -119,9 +119,8 @@ func (g *Grid) Cut(col, row int) bool {
 	if !g.InBounds(col, row) || g.cells[row][col] != Root {
 		return false
 	}
-	g.cells[row][col] = Rot
 	g.mushroom[row][col] = false
-	g.rotCount++
+	g.addRot(col, row)
 	g.recomputeConnectivity()
 	return true
 }

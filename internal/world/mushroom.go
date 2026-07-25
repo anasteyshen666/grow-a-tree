@@ -13,6 +13,7 @@ const (
 // over time and infect any root they end up next to, turning it into a mushroom
 // root (GDD §4).
 func (g *Grid) Update(dt float64, wave int) {
+	g.decayRot(dt)
 	if wave >= sporeStartWave {
 		g.sporeTimer += dt
 		if g.sporeTimer >= sporeSpawnInterval {

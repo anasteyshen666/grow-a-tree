@@ -95,6 +95,28 @@ func TestLevel1BugDiesOnOneRot(t *testing.T) {
 	}
 }
 
+func TestEatingRotPoisonsAndSlows(t *testing.T) {
+	f := &mockField{onRot: true}
+	b := &Bug{Col: 5, Row: 5, level: 2} // needs 2 rots, survives the first
+
+	if dead := b.update(poisonTime, f); dead {
+		t.Fatal("level-2 bug died on the first rot")
+	}
+	if b.poison <= 0 {
+		t.Fatal("bug was not poisoned after eating rot")
+	}
+
+	f.onRot = false // off the rot now, but poisoned -> half speed
+	b.update(levels[2].moveInterval, f)
+	if b.Col != 5 {
+		t.Fatal("poisoned bug moved at full speed")
+	}
+	b.update(levels[2].moveInterval, f)
+	if b.Col != 6 {
+		t.Fatalf("poisoned bug never moved: (%d,%d)", b.Col, b.Row)
+	}
+}
+
 func TestHigherLevelBugNeedsMoreRot(t *testing.T) {
 	f := &mockField{onRot: true}
 	b := &Bug{Col: 5, Row: 5, level: 3}
