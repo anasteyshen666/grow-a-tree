@@ -15,7 +15,7 @@ var (
 	colorMushroom = color.RGBA{0x35, 0xe0, 0xc4, 0xff}
 	colorRot      = color.RGBA{0x6b, 0x4a, 0x2f, 0xff}
 	colorSource   = color.RGBA{0x3c, 0x9a, 0xff, 0xff}
-	colorSpore    = color.RGBA{0xc9, 0xa8, 0xff, 0xff}
+	colorSpore    = color.RGBA{0xf5, 0xd0, 0x3c, 0xff}
 	colorGrowOK   = color.RGBA{0x5a, 0xff, 0xc4, 0x55}
 	colorCut      = color.RGBA{0xff, 0x6e, 0x4c, 0x66}
 )
@@ -42,21 +42,12 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 				}
 			case Rot:
 				fillCell(screen, col, row, colorRot)
+			case Spore:
+				fillCell(screen, col, row, colorSpore)
 			}
 		}
 	}
 	g.drawSources(screen)
-	g.drawSpores(screen)
-}
-
-func (g *Grid) drawSpores(screen *ebiten.Image) {
-	inset := float32(CellSize) * 0.3
-	size := float32(CellSize) - 2*inset
-	for _, s := range g.spores {
-		x := float32(s[0]*CellSize) + inset
-		y := float32(s[1]*CellSize) + inset
-		vector.DrawFilledRect(screen, x, y, size, size, colorSpore, false)
-	}
 }
 
 func (g *Grid) drawSources(screen *ebiten.Image) {

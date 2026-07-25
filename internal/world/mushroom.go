@@ -5,15 +5,20 @@ import "math/rand"
 const (
 	maxSpores          = 4
 	sporeSpawnInterval = 7.0 // seconds between spore appearances
+	sporeStartWave     = 5   // spores only begin appearing from this wave on
+	mushroomSlowRadius = 3   // cells around a mushroom root where bugs are slowed
 )
 
-// Update ticks the mushroom system: spores appear over time and infect any root
-// they end up next to, turning it into a mushroom root (GDD §4).
-func (g *Grid) Update(dt float64) {
-	g.sporeTimer += dt
-	if g.sporeTimer >= sporeSpawnInterval {
-		g.sporeTimer = 0
-		g.spawnSpore()
+// Update ticks the mushroom system: from wave sporeStartWave on, spores appear
+// over time and infect any root they end up next to, turning it into a mushroom
+// root (GDD §4).
+func (g *Grid) Update(dt float64, wave int) {
+	if wave >= sporeStartWave {
+		g.sporeTimer += dt
+		if g.sporeTimer >= sporeSpawnInterval {
+			g.sporeTimer = 0
+			g.spawnSpore()
+		}
 	}
 	g.infectFromSpores()
 }
@@ -63,13 +68,15 @@ func (g *Grid) IsMushroom(col, row int) bool {
 	return g.InBounds(col, row) && g.cells[row][col] == Root && g.mushroom[row][col]
 }
 
-// SlowsBug reports whether a mushroom root sits next to the cell, halving the
-// speed of a bug crawling there.
+// SlowsBug reports whether a mushroom root sits within mushroomSlowRadius cells
+// of the cell, halving the speed of a bug crawling there.
 func (g *Grid) SlowsBug(col, row int) bool {
-	for _, d := range neighbors {
-		c, r := col+d[0], row+d[1]
-		if g.InBounds(c, r) && g.cells[r][c] == Root && g.mushroom[r][c] {
-			return true
+	for dr := -mushroomSlowRadius; dr <= mushroomSlowRadius; dr++ {
+		for dc := -mushroomSlowRadius; dc <= mushroomSlowRadius; dc++ {
+			c, r := col+dc, row+dr
+			if g.InBounds(c, r) && g.cells[r][c] == Root && g.mushroom[r][c] {
+				return true
+			}
 		}
 	}
 	return false
