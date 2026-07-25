@@ -28,6 +28,7 @@ type Game struct {
 	res   *resources.Resources
 	bugs  *enemies.Manager
 	waves *waves.Manager
+	over  bool
 }
 
 func New() *Game {
@@ -40,13 +41,25 @@ func New() *Game {
 }
 
 func (g *Game) Update() error {
+	if g.over {
+		if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+			*g = *New()
+		}
+		return nil
+	}
+
 	g.res.AddWater(g.grid.MineWater(secondsPerTick))
 	g.res.Update(secondsPerTick)
 
 	for n := g.waves.Update(secondsPerTick, g.bugs.Count()); n > 0; n-- {
 		g.bugs.Spawn(g.grid)
 	}
-	g.bugs.Update(secondsPerTick, g.grid)
+	g.bugs.Update(secondsPerTick, g.grid, g.res)
+
+	if g.grid.CoreHP() <= 0 {
+		g.over = true
+		return nil
+	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		col, row := world.CellAt(ebiten.CursorPosition())
@@ -72,6 +85,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ui.DrawResources(screen, g.res)
 	ui.DrawCoreHP(screen, g.grid.CoreHP())
 	ui.DrawWaveInfo(screen, ScreenWidth-160, g.waves.Number(), g.waves.InPrep(), g.waves.PrepRemaining())
+	if g.over {
+		ui.DrawGameOver(screen, ScreenWidth, ScreenHeight, g.waves.Number())
+	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

@@ -22,6 +22,7 @@ go build -o bin/growtree.exe ./cmd/game
 
 - **LMB** — grow a root into an empty (or rotted) cell touching your network. Costs energy.
 - **RMB** — cut your own root; refunds 50% of the energy and leaves rot behind.
+- **R** — restart after game over.
 
 ## Structure
 
@@ -57,7 +58,7 @@ the stages progress.
 - [x] Stage 5 — water sources
 - [x] Stage 6 — enemies: basic AI
 - [x] Stage 7 — waves
-- [ ] Stage 8 — combat
+- [x] Stage 8 — combat
 - [ ] Stage 9 — 5 bug levels
 - [ ] Stage 10 — mushrooms and symbiosis
 - [ ] Stage 11 — rot as bait

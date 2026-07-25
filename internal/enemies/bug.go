@@ -11,6 +11,14 @@ type Field interface {
 	IsRot(col, row int) bool
 	EatRot(col, row int)
 	Damage(col, row int)
+	// NearLiveNetwork reports whether a Core or connected Root sits next to the
+	// cell — such bugs are within reach of the network's counterattack.
+	NearLiveNetwork(col, row int) bool
+}
+
+// EnergyBank is the player's energy, which fighting bugs drains.
+type EnergyBank interface {
+	TrySpendEnergy(v float64) bool
 }
 
 const (
@@ -21,6 +29,7 @@ const (
 
 type Bug struct {
 	Col, Row int
+	hp       float64
 	timer    float64
 }
 

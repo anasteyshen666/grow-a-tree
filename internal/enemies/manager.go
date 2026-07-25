@@ -7,7 +7,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-const maxBugs = 200
+const (
+	maxBugs = 200
+
+	bugHP              = 30.0 // hits a bug can take before dying
+	attackDamagePerSec = 12.0 // damage the live network deals to an adjacent bug
+	attackEnergyPerSec = 8.0  // energy the player burns per second of fighting
+)
 
 var colorBug = color.RGBA{0xff, 0x4c, 0x5e, 0xff}
 
@@ -25,19 +31,35 @@ func (m *Manager) Spawn(f Field) {
 		return
 	}
 	if c, r, ok := f.RandomEdgeSpawn(); ok {
-		m.bugs = append(m.bugs, &Bug{Col: c, Row: r})
+		m.bugs = append(m.bugs, &Bug{Col: c, Row: r, hp: bugHP})
 	}
 }
 
-func (m *Manager) Update(dt float64, f Field) {
+func (m *Manager) Update(dt float64, f Field, bank EnergyBank) {
 	kept := m.bugs[:0]
 	for _, b := range m.bugs {
 		if b.update(dt, f) {
 			continue // died on rot bait
 		}
+		if attack(dt, b, f, bank) {
+			continue // killed by the network
+		}
 		kept = append(kept, b)
 	}
 	m.bugs = kept
+}
+
+// attack lets the live network chip an adjacent bug, spending energy to do so.
+// Returns whether the bug died.
+func attack(dt float64, b *Bug, f Field, bank EnergyBank) bool {
+	if !f.NearLiveNetwork(b.Col, b.Row) {
+		return false
+	}
+	if !bank.TrySpendEnergy(attackEnergyPerSec * dt) {
+		return false // no energy to fight back
+	}
+	b.hp -= attackDamagePerSec * dt
+	return b.hp <= 0
 }
 
 // Draw renders each bug as a square a little smaller than a cell.

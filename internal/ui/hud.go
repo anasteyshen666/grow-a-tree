@@ -49,6 +49,16 @@ func DrawCoreHP(screen *ebiten.Image, hp int) {
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Core HP: %d", hp), labelX, topY+3*rowH-2)
 }
 
+var colorGameOverVeil = color.RGBA{0x00, 0x00, 0x00, 0xb0}
+
+// DrawGameOver dims the field and shows the result with a restart hint.
+func DrawGameOver(screen *ebiten.Image, w, h, wave int) {
+	vector.DrawFilledRect(screen, 0, 0, float32(w), float32(h), colorGameOverVeil, false)
+	ebitenutil.DebugPrintAt(screen, "GAME OVER", w/2-28, h/2-16)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("You survived to wave %d", wave), w/2-72, h/2)
+	ebitenutil.DebugPrintAt(screen, "Press R to restart", w/2-56, h/2+16)
+}
+
 func drawBar(screen *ebiten.Image, y int, label string, p resources.Pool, c color.Color) {
 	ebitenutil.DebugPrintAt(screen, label, labelX, y-2)
 	vector.DrawFilledRect(screen, barX, float32(y), barW, barH, colorBarBg, false)
