@@ -10,6 +10,7 @@ const (
 	Root
 	Rot
 	Water
+	Spore
 )
 
 const (
@@ -28,6 +29,11 @@ type Grid struct {
 	sources   []*waterSource
 	coreHP    int
 	rotCount  int
+	// mushroom[r][c] marks a Root infected by a spore (GDD §4): bugs crawl past
+	// it at half speed. Spores waiting to infect a root are tracked separately.
+	mushroom   [Rows][Cols]bool
+	spores     [][2]int
+	sporeTimer float64
 }
 
 func NewGrid() *Grid {
@@ -114,6 +120,7 @@ func (g *Grid) Cut(col, row int) bool {
 		return false
 	}
 	g.cells[row][col] = Rot
+	g.mushroom[row][col] = false
 	g.rotCount++
 	g.recomputeConnectivity()
 	return true

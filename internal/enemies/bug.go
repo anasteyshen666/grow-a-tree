@@ -11,6 +11,9 @@ type Field interface {
 	IsRot(col, row int) bool
 	EatRot(col, row int)
 	Damage(col, row, dmg int)
+	// SlowsBug reports whether a mushroom root is next to the cell, halving the
+	// bug's crawl speed there.
+	SlowsBug(col, row int) bool
 }
 
 const poisonTime = 0.7 // seconds a bug lingers on a rot tile before eating it
@@ -41,9 +44,15 @@ func (b *Bug) update(dt float64, f Field) (dead bool) {
 		return false
 	}
 
+	// Crawling next to a mushroom root is twice as slow.
+	move := st.moveInterval
+	if f.SlowsBug(b.Col, b.Row) {
+		move *= 2
+	}
+
 	// Rot lures bugs off the network, so chasing bait takes priority. The BFS
 	// only runs on a move tick to stay off the hot path.
-	if b.timer >= st.moveInterval {
+	if b.timer >= move {
 		if c, r, ok := f.NextRotStep(b.Col, b.Row); ok {
 			b.timer = 0
 			b.Col, b.Row = c, r
@@ -61,7 +70,7 @@ func (b *Bug) update(dt float64, f Field) (dead bool) {
 	}
 
 	// Otherwise crawl toward the network.
-	if b.timer >= st.moveInterval {
+	if b.timer >= move {
 		b.timer = 0
 		if c, r, ok := f.NextStep(b.Col, b.Row); ok {
 			b.Col, b.Row = c, r

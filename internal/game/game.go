@@ -48,6 +48,7 @@ func (g *Game) Update() error {
 		return nil
 	}
 
+	g.grid.Update(secondsPerTick)
 	g.res.AddWater(g.grid.MineWater(secondsPerTick))
 	g.res.Update(secondsPerTick)
 

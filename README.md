@@ -60,7 +60,7 @@ the stages progress.
 - [x] Stage 7 — waves
 - [x] Stage 8 — combat
 - [x] Stage 9 — 5 bug levels
-- [ ] Stage 10 — mushrooms and symbiosis
+- [x] Stage 10 — mushrooms and symbiosis
 - [ ] Stage 11 — rot as bait
 - [ ] Stage 12 — companion plants
 - [ ] Stage 13 — multiple Cores

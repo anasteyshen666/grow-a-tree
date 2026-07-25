@@ -6,6 +6,7 @@ type mockField struct {
 	adjacent bool
 	onRot    bool
 	rotStep  bool
+	slow     bool
 	damaged  int
 	rotEaten int
 }
@@ -24,9 +25,10 @@ func (f *mockField) AdjacentTarget(c, r int) (int, int, bool) {
 	}
 	return 0, 0, false
 }
-func (f *mockField) IsRot(int, int) bool   { return f.onRot }
-func (f *mockField) EatRot(int, int)       { f.rotEaten++ }
-func (f *mockField) Damage(int, int, int)  { f.damaged++ }
+func (f *mockField) IsRot(int, int) bool    { return f.onRot }
+func (f *mockField) EatRot(int, int)        { f.rotEaten++ }
+func (f *mockField) Damage(int, int, int)   { f.damaged++ }
+func (f *mockField) SlowsBug(int, int) bool { return f.slow }
 
 func TestBugGnawsAdjacentTargetWithoutMoving(t *testing.T) {
 	f := &mockField{adjacent: true}
@@ -51,6 +53,20 @@ func TestBugStepsWhenPathIsClear(t *testing.T) {
 	}
 	if f.damaged != 0 {
 		t.Fatal("bug damaged something with no adjacent target")
+	}
+}
+
+func TestMushroomHalvesBugSpeed(t *testing.T) {
+	f := &mockField{slow: true}
+	b := &Bug{Col: 5, Row: 5, level: 1}
+
+	b.update(levels[1].moveInterval, f) // enough to move normally, but slowed
+	if b.Col != 5 {
+		t.Fatal("bug moved despite the mushroom slowdown")
+	}
+	b.update(levels[1].moveInterval, f) // now past the doubled interval
+	if b.Col != 6 {
+		t.Fatalf("bug did not move after the slowed interval: (%d,%d)", b.Col, b.Row)
 	}
 }
 
