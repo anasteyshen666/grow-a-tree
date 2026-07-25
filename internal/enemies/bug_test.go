@@ -25,9 +25,9 @@ func (f *mockField) AdjacentTarget(c, r int) (int, int, bool) {
 	}
 	return 0, 0, false
 }
-func (f *mockField) IsRot(int, int) bool          { return f.onRot }
-func (f *mockField) EatRot(int, int)              { f.rotEaten++ }
-func (f *mockField) Damage(int, int)              { f.damaged++ }
+func (f *mockField) IsRot(int, int) bool           { return f.onRot }
+func (f *mockField) EatRot(int, int)               { f.rotEaten++ }
+func (f *mockField) Damage(int, int, int)          { f.damaged++ }
 func (f *mockField) NearLiveNetwork(int, int) bool { return f.nearNet }
 
 type mockBank struct {
@@ -46,8 +46,8 @@ func (b *mockBank) TrySpendEnergy(v float64) bool {
 
 func TestBugGnawsAdjacentTargetWithoutMoving(t *testing.T) {
 	f := &mockField{adjacent: true}
-	b := &Bug{Col: 5, Row: 5}
-	b.update(gnawTime, f)
+	b := &Bug{Col: 5, Row: 5, level: 1}
+	b.update(levels[1].gnawTime, f)
 
 	if f.damaged != 1 {
 		t.Fatalf("expected one gnaw, got %d", f.damaged)
@@ -59,8 +59,8 @@ func TestBugGnawsAdjacentTargetWithoutMoving(t *testing.T) {
 
 func TestBugStepsWhenPathIsClear(t *testing.T) {
 	f := &mockField{adjacent: false}
-	b := &Bug{Col: 5, Row: 5}
-	b.update(moveInterval, f)
+	b := &Bug{Col: 5, Row: 5, level: 1}
+	b.update(levels[1].moveInterval, f)
 
 	if b.Col != 6 || b.Row != 5 {
 		t.Fatalf("bug did not step toward the network: (%d,%d)", b.Col, b.Row)
@@ -72,8 +72,8 @@ func TestBugStepsWhenPathIsClear(t *testing.T) {
 
 func TestBugChasesRotOverGnawing(t *testing.T) {
 	f := &mockField{adjacent: true, rotStep: true} // root adjacent, but rot lures it
-	b := &Bug{Col: 5, Row: 5}
-	b.update(moveInterval, f)
+	b := &Bug{Col: 5, Row: 5, level: 1}
+	b.update(levels[1].moveInterval, f)
 
 	if b.Row != 6 || b.Col != 5 {
 		t.Fatalf("bug did not head for the rot: (%d,%d)", b.Col, b.Row)
@@ -85,7 +85,7 @@ func TestBugChasesRotOverGnawing(t *testing.T) {
 
 func TestBugDiesOnRot(t *testing.T) {
 	f := &mockField{onRot: true}
-	b := &Bug{Col: 5, Row: 5}
+	b := &Bug{Col: 5, Row: 5, level: 1}
 
 	if dead := b.update(poisonTime, f); !dead {
 		t.Fatal("bug should die after lingering on rot")
@@ -99,7 +99,7 @@ func TestNetworkKillsAdjacentBugForEnergy(t *testing.T) {
 	f := &mockField{nearNet: true}
 	bank := &mockBank{energy: 1000}
 	m := NewManager()
-	m.bugs = append(m.bugs, &Bug{Col: 5, Row: 5, hp: bugHP})
+	m.bugs = append(m.bugs, &Bug{Col: 5, Row: 5, level: 1, hp: levels[1].hp})
 
 	for i := 0; i < 600 && m.Count() > 0; i++ { // up to 10s at 60 TPS
 		m.Update(1.0/60.0, f, bank)
@@ -116,7 +116,7 @@ func TestNoEnergyMeansNoKill(t *testing.T) {
 	f := &mockField{nearNet: true}
 	bank := &mockBank{energy: 0}
 	m := NewManager()
-	m.bugs = append(m.bugs, &Bug{Col: 5, Row: 5, hp: bugHP})
+	m.bugs = append(m.bugs, &Bug{Col: 5, Row: 5, level: 1, hp: levels[1].hp})
 
 	for i := 0; i < 600; i++ {
 		m.Update(1.0/60.0, f, bank)

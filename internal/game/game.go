@@ -52,7 +52,7 @@ func (g *Game) Update() error {
 	g.res.Update(secondsPerTick)
 
 	for n := g.waves.Update(secondsPerTick, g.bugs.Count()); n > 0; n-- {
-		g.bugs.Spawn(g.grid)
+		g.bugs.Spawn(g.grid, g.waves.Number())
 	}
 	g.bugs.Update(secondsPerTick, g.grid, g.res)
 

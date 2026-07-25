@@ -59,7 +59,7 @@ the stages progress.
 - [x] Stage 6 — enemies: basic AI
 - [x] Stage 7 — waves
 - [x] Stage 8 — combat
-- [ ] Stage 9 — 5 bug levels
+- [x] Stage 9 — 5 bug levels
 - [ ] Stage 10 — mushrooms and symbiosis
 - [ ] Stage 11 — rot as bait
 - [ ] Stage 12 — companion plants

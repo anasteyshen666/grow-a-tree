@@ -43,8 +43,8 @@ func TestCoreTakesDamage(t *testing.T) {
 		t.Fatalf("core should start at %d HP, got %d", CoreMaxHP, g.CoreHP())
 	}
 	col0, row0 := coreCorner()
-	g.Damage(col0, row0)
-	if g.CoreHP() != CoreMaxHP-coreBiteDamage {
+	g.Damage(col0, row0, 7)
+	if g.CoreHP() != CoreMaxHP-7 {
 		t.Fatalf("gnawing the core did not chip its HP: %d", g.CoreHP())
 	}
 }
@@ -54,7 +54,7 @@ func TestDamageDestroysRootAndBreaksNetwork(t *testing.T) {
 	clearSources(g)
 	row, cols := growChainLeft(g, 2) // cols[0] by the Core, cols[1] beyond it
 
-	g.Damage(cols[0], row)
+	g.Damage(cols[0], row, 0)
 	if g.Kind(cols[0], row) != Empty {
 		t.Fatal("gnawed root was not destroyed")
 	}

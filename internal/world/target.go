@@ -117,17 +117,15 @@ func (g *Grid) NextStep(sc, sr int) (int, int, bool) {
 	return 0, 0, false
 }
 
-const coreBiteDamage = 5
-
 // Damage destroys a gnawed root (the network beyond it falls off) or chips the
-// Core's health. Reaching 0 HP triggers game over in a later stage.
-func (g *Grid) Damage(col, row int) {
+// Core's health by dmg. Reaching 0 HP triggers game over.
+func (g *Grid) Damage(col, row, dmg int) {
 	switch g.Kind(col, row) {
 	case Root:
 		g.cells[row][col] = Empty
 		g.recomputeConnectivity()
 	case Core:
-		g.coreHP -= coreBiteDamage
+		g.coreHP -= dmg
 		if g.coreHP < 0 {
 			g.coreHP = 0
 		}
