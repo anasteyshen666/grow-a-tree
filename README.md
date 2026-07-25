@@ -55,8 +55,8 @@ the stages progress.
 - [x] Stage 3 — cutting and rot (RMB)
 - [x] Stage 4 — network logistics (flood-fill from the Core)
 - [x] Stage 5 — water sources
-- [ ] Stage 6 — enemies: basic AI
-- [ ] Stage 7 — waves
+- [x] Stage 6 — enemies: basic AI
+- [x] Stage 7 — waves
 - [ ] Stage 8 — combat
 - [ ] Stage 9 — 5 bug levels
 - [ ] Stage 10 — mushrooms and symbiosis

@@ -33,6 +33,17 @@ func DrawResources(screen *ebiten.Image, r *resources.Resources) {
 	drawBar(screen, topY+2*rowH, "Seeds", r.Seeds, colorSeeds)
 }
 
+// DrawWaveInfo shows the current/next wave and the prep countdown (top-right).
+func DrawWaveInfo(screen *ebiten.Image, x, wave int, inPrep bool, prep float64) {
+	var s string
+	if inPrep {
+		s = fmt.Sprintf("Wave %d in %.0fs", wave+1, prep)
+	} else {
+		s = fmt.Sprintf("Wave %d", wave)
+	}
+	ebitenutil.DebugPrintAt(screen, s, x, topY-2)
+}
+
 func drawBar(screen *ebiten.Image, y int, label string, p resources.Pool, c color.Color) {
 	ebitenutil.DebugPrintAt(screen, label, labelX, y-2)
 	vector.DrawFilledRect(screen, barX, float32(y), barW, barH, colorBarBg, false)

@@ -7,8 +7,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
+	"growtree/internal/enemies"
 	"growtree/internal/resources"
 	"growtree/internal/ui"
+	"growtree/internal/waves"
 	"growtree/internal/world"
 )
 
@@ -22,20 +24,29 @@ const (
 var backgroundColor = color.RGBA{R: 0x0b, G: 0x0d, B: 0x12, A: 0xff}
 
 type Game struct {
-	grid *world.Grid
-	res  *resources.Resources
+	grid  *world.Grid
+	res   *resources.Resources
+	bugs  *enemies.Manager
+	waves *waves.Manager
 }
 
 func New() *Game {
 	return &Game{
-		grid: world.NewGrid(),
-		res:  resources.New(),
+		grid:  world.NewGrid(),
+		res:   resources.New(),
+		bugs:  enemies.NewManager(),
+		waves: waves.NewManager(),
 	}
 }
 
 func (g *Game) Update() error {
 	g.res.AddWater(g.grid.MineWater(secondsPerTick))
 	g.res.Update(secondsPerTick)
+
+	for n := g.waves.Update(secondsPerTick); n > 0; n-- {
+		g.bugs.Spawn(g.grid)
+	}
+	g.bugs.Update(secondsPerTick, g.grid)
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		col, row := world.CellAt(ebiten.CursorPosition())
@@ -57,7 +68,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.grid.Draw(screen)
 	col, row := world.CellAt(ebiten.CursorPosition())
 	g.grid.DrawHover(screen, col, row)
+	g.bugs.Draw(screen, world.CellSize)
 	ui.DrawResources(screen, g.res)
+	ui.DrawWaveInfo(screen, ScreenWidth-160, g.waves.Number(), g.waves.InPrep(), g.waves.PrepRemaining())
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

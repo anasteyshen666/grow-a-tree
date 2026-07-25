@@ -1,0 +1,73 @@
+// Package waves drives the endless assault (GDD §7): a prep timer between waves,
+// then releasing a wave of bugs in a steady trickle, tracking the wave number
+// and scaling the wave size with it.
+package waves
+
+const (
+	prepTime     = 15.0 // seconds of calm before a wave
+	spawnCadence = 0.6  // seconds between bug releases within a wave
+	baseWaveSize = 5
+)
+
+type phase int
+
+const (
+	prep phase = iota
+	spawning
+)
+
+type Manager struct {
+	wave      int
+	phase     phase
+	timer     float64
+	remaining int
+}
+
+func NewManager() *Manager {
+	return &Manager{phase: prep, timer: prepTime}
+}
+
+// waveSize is how many bugs wave n releases (grows by one each wave).
+func waveSize(n int) int { return baseWaveSize + (n - 1) }
+
+// Update advances the wave clock and returns how many bugs to spawn this tick.
+func (m *Manager) Update(dt float64) int {
+	switch m.phase {
+	case prep:
+		m.timer -= dt
+		if m.timer <= 0 {
+			m.wave++
+			m.remaining = waveSize(m.wave)
+			m.phase = spawning
+			m.timer = 0
+		}
+		return 0
+
+	case spawning:
+		m.timer -= dt
+		spawned := 0
+		for m.timer <= 0 && m.remaining > 0 {
+			spawned++
+			m.remaining--
+			m.timer += spawnCadence
+		}
+		if m.remaining == 0 {
+			m.phase = prep
+			m.timer = prepTime
+		}
+		return spawned
+	}
+	return 0
+}
+
+func (m *Manager) Number() int { return m.wave }
+
+func (m *Manager) InPrep() bool { return m.phase == prep }
+
+// PrepRemaining is the seconds left before the next wave, or 0 while spawning.
+func (m *Manager) PrepRemaining() float64 {
+	if m.phase == prep {
+		return m.timer
+	}
+	return 0
+}
