@@ -8,6 +8,7 @@ const (
 	Empty CellKind = iota
 	Core
 	Root
+	Rot
 )
 
 const (
@@ -59,9 +60,14 @@ func (g *Grid) touchesNetwork(col, row int) bool {
 	return false
 }
 
-// CanGrow reports whether a new root may be placed at the cell.
+// CanGrow reports whether a new root may be placed at the cell. Empty and Rot
+// cells are both valid targets (a root can reclaim rotted ground).
 func (g *Grid) CanGrow(col, row int) bool {
-	return g.InBounds(col, row) && g.cells[row][col] == Empty && g.touchesNetwork(col, row)
+	if !g.InBounds(col, row) {
+		return false
+	}
+	k := g.cells[row][col]
+	return (k == Empty || k == Rot) && g.touchesNetwork(col, row)
 }
 
 // Grow places a root and returns whether it happened.
@@ -70,6 +76,16 @@ func (g *Grid) Grow(col, row int) bool {
 		return false
 	}
 	g.cells[row][col] = Root
+	return true
+}
+
+// Cut removes a player's root, leaving Rot behind. The Core cannot be cut.
+// Returns whether a root was actually removed.
+func (g *Grid) Cut(col, row int) bool {
+	if !g.InBounds(col, row) || g.cells[row][col] != Root {
+		return false
+	}
+	g.cells[row][col] = Rot
 	return true
 }
 

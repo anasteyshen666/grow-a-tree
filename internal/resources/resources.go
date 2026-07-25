@@ -17,6 +17,7 @@ func (p *Pool) add(v float64) {
 
 const (
 	RootEnergyCost = 8.0
+	RootRefund     = RootEnergyCost * 0.5
 
 	energyRegenPerSec = 6.0
 	waterPerEnergy    = 0.5
@@ -61,6 +62,11 @@ func (r *Resources) regenEnergy(dt float64) {
 	}
 	r.Energy.add(gain)
 	r.Water.add(-gain * waterPerEnergy)
+}
+
+// AddEnergy credits energy (clamped to Max), e.g. a refund from cutting a root.
+func (r *Resources) AddEnergy(v float64) {
+	r.Energy.add(v)
 }
 
 // TrySpendEnergy deducts v if affordable and reports success.

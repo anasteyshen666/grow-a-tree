@@ -42,6 +42,12 @@ func (g *Game) Update() error {
 			g.grid.Grow(col, row)
 		}
 	}
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		col, row := world.CellAt(ebiten.CursorPosition())
+		if g.grid.Cut(col, row) {
+			g.res.AddEnergy(resources.RootRefund)
+		}
+	}
 	return nil
 }
 

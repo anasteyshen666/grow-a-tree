@@ -30,6 +30,33 @@ func TestGrowRequiresAdjacency(t *testing.T) {
 	}
 }
 
+func TestCutTurnsRootToRot(t *testing.T) {
+	g := NewGrid()
+	col, row := coreCorner()
+	g.Grow(col-1, row)
+
+	if !g.Cut(col-1, row) || g.Kind(col-1, row) != Rot {
+		t.Fatal("cutting a root did not leave Rot")
+	}
+	if g.Cut(col-1, row) {
+		t.Fatal("cut something that was not a root")
+	}
+	if g.Cut(col, row) {
+		t.Fatal("cut the Core")
+	}
+}
+
+func TestGrowReclaimsRot(t *testing.T) {
+	g := NewGrid()
+	col, row := coreCorner()
+	g.Grow(col-1, row)
+	g.Cut(col-1, row)
+
+	if !g.Grow(col-1, row) || g.Kind(col-1, row) != Root {
+		t.Fatal("could not regrow over Rot next to the Core")
+	}
+}
+
 func TestGrowChainsAndRejectsOccupied(t *testing.T) {
 	g := NewGrid()
 	col, row := coreCorner()

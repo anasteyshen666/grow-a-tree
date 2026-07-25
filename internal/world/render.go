@@ -11,8 +11,9 @@ var (
 	colorGridLine = color.RGBA{0x16, 0x1b, 0x24, 0xff}
 	colorCore     = color.RGBA{0x5a, 0xff, 0xc4, 0xff}
 	colorRoot     = color.RGBA{0x2f, 0xa8, 0x6b, 0xff}
+	colorRot      = color.RGBA{0x6b, 0x4a, 0x2f, 0xff}
 	colorGrowOK   = color.RGBA{0x5a, 0xff, 0xc4, 0x55}
-	colorGrowBad  = color.RGBA{0xff, 0x4c, 0x5e, 0x3c}
+	colorCut      = color.RGBA{0xff, 0x6e, 0x4c, 0x66}
 )
 
 func (g *Grid) Draw(screen *ebiten.Image) {
@@ -24,21 +25,24 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 				fillCell(screen, col, row, colorCore)
 			case Root:
 				fillCell(screen, col, row, colorRoot)
+			case Rot:
+				fillCell(screen, col, row, colorRot)
 			}
 		}
 	}
 }
 
-// DrawHover previews the cell under the cursor: green if a root can grow there,
-// red if not.
+// DrawHover previews the cell under the cursor: green where a root can grow,
+// red over a cuttable root.
 func (g *Grid) DrawHover(screen *ebiten.Image, col, row int) {
-	if !g.InBounds(col, row) || g.cells[row][col] != Empty {
+	if !g.InBounds(col, row) {
 		return
 	}
-	if g.touchesNetwork(col, row) {
+	switch {
+	case g.CanGrow(col, row):
 		fillCell(screen, col, row, colorGrowOK)
-	} else {
-		fillCell(screen, col, row, colorGrowBad)
+	case g.cells[row][col] == Root:
+		fillCell(screen, col, row, colorCut)
 	}
 }
 
