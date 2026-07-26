@@ -29,9 +29,15 @@ func sourceCapacity() float64 {
 	}
 }
 
+// randInsetCell returns a random cell at least one cell in from every border,
+// so features never hug the window edge.
+func randInsetCell() (col, row int) {
+	return rand.Intn(Cols-2) + 1, rand.Intn(Rows-2) + 1
+}
+
 func (g *Grid) spawnSources() {
 	for len(g.sources) < sourceCount {
-		c, r := rand.Intn(Cols), rand.Intn(Rows)
+		c, r := randInsetCell()
 		if g.cells[r][c] != Empty {
 			continue
 		}

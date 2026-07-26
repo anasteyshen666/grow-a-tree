@@ -29,6 +29,8 @@ func (g *Grid) recomputeConnectivity() {
 			}
 		}
 	}
+
+	g.computeCoreMerges()
 }
 
 // IsConnected reports whether the cell is part of the live network (a Core, or

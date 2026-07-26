@@ -61,6 +61,7 @@ func (g *Game) Update() error {
 	}
 
 	g.grid.Update(secondsPerTick, g.waves.Number())
+	g.res.SetCoreLinks(g.grid.CoreMerges())
 	g.res.AddWater(g.grid.MineWater(secondsPerTick))
 	energyMult, waterMult := g.plants.Modifiers()
 	g.res.Update(secondsPerTick, energyMult, waterMult)
@@ -70,7 +71,7 @@ func (g *Game) Update() error {
 	}
 	g.bugs.Update(secondsPerTick, g.grid)
 
-	if g.grid.CoreHP() <= 0 {
+	if g.grid.CoreCount() == 0 {
 		g.over = true
 		return nil
 	}
@@ -96,6 +97,11 @@ func (g *Game) Update() error {
 			}
 		}
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyM) && g.res.Seeds.Cur >= world.MatureSeedCost {
+		if g.grid.Mature() {
+			g.res.TrySpendSeeds(world.MatureSeedCost)
+		}
+	}
 	return nil
 }
 
@@ -107,7 +113,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.grid.DrawHover(screen, col, row)
 	g.bugs.Draw(screen, world.CellSize)
 	ui.DrawResources(screen, g.res)
-	ui.DrawCoreHP(screen, g.grid.CoreHP())
+	ui.DrawCoreHP(screen, g.grid.CoreCount(), g.grid.CoreHP())
 	ui.DrawWaveInfo(screen, ScreenWidth-160, g.waves.Number(), g.waves.InPrep(), g.waves.PrepRemaining())
 	ui.DrawPlantHint(screen, ScreenHeight)
 	if g.over {

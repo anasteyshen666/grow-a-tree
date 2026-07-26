@@ -26,10 +26,11 @@ type Grid struct {
 	cells [Rows][Cols]CellKind
 	// connected[r][c] is true for a Core or a Root reachable from a Core through
 	// other roots. Recomputed on every change to the network (see network.go).
-	connected [Rows][Cols]bool
-	sources   []*waterSource
-	coreHP    int
-	rots      []*rotTile
+	connected  [Rows][Cols]bool
+	sources    []*waterSource
+	cores      []*core
+	coreMerges int
+	rots       []*rotTile
 	// mushroom[r][c] marks a Root infected by a spore (GDD §4): bugs crawl past
 	// it at half speed. Spores waiting to infect a root are tracked separately.
 	mushroom   [Rows][Cols]bool
@@ -38,23 +39,32 @@ type Grid struct {
 }
 
 func NewGrid() *Grid {
-	g := &Grid{coreHP: CoreMaxHP}
-	g.placeCore()
+	g := &Grid{}
+	g.placeCore(Cols/2-1, Rows/2-1)
 	g.spawnSources()
 	g.recomputeConnectivity()
 	return g
 }
 
-// CoreHP is the remaining health of the Core (0..CoreMaxHP).
-func (g *Grid) CoreHP() int { return g.coreHP }
+// CoreHP is the total remaining health across all Cores.
+func (g *Grid) CoreHP() int {
+	total := 0
+	for _, c := range g.cores {
+		total += c.hp
+	}
+	return total
+}
 
-func (g *Grid) placeCore() {
-	col0, row0 := Cols/2-1, Rows/2-1
+// CoreCount is how many Cores are still standing.
+func (g *Grid) CoreCount() int { return len(g.cores) }
+
+func (g *Grid) placeCore(col0, row0 int) {
 	for dr := 0; dr < 2; dr++ {
 		for dc := 0; dc < 2; dc++ {
 			g.cells[row0+dr][col0+dc] = Core
 		}
 	}
+	g.cores = append(g.cores, &core{col: col0, row: row0, hp: CoreMaxHP})
 }
 
 func (g *Grid) InBounds(col, row int) bool {

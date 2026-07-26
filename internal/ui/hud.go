@@ -44,14 +44,15 @@ func DrawWaveInfo(screen *ebiten.Image, x, wave int, inPrep bool, prep float64) 
 	}
 }
 
-// DrawCoreHP shows the Core's health as a plain number (top-left, under the bars).
-func DrawCoreHP(screen *ebiten.Image, hp int) {
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Core HP: %d", hp), labelX, topY+3*rowH-2)
+// DrawCoreHP shows how many Cores stand and their total health (top-left, under
+// the bars).
+func DrawCoreHP(screen *ebiten.Image, cores, hp int) {
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Cores: %d   HP: %d", cores, hp), labelX, topY+3*rowH-2)
 }
 
-// DrawPlantHint shows the planting keys along the bottom-left.
+// DrawPlantHint shows the planting and mature keys along the bottom-left.
 func DrawPlantHint(screen *ebiten.Image, screenH int) {
-	ebitenutil.DebugPrintAt(screen, "Plant near Core (100 seeds): 1 Battery  2 Moss  3 Thorn", labelX, screenH-18)
+	ebitenutil.DebugPrintAt(screen, "Plant near Core (100 seeds): 1 Battery  2 Moss  3 Thorn      M: mature new Core (80 seeds)", labelX, screenH-18)
 }
 
 var colorGameOverVeil = color.RGBA{0x00, 0x00, 0x00, 0xb0}

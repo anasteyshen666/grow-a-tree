@@ -23,6 +23,7 @@ go build -o bin/growtree.exe ./cmd/game
 - **LMB** — grow a root into an empty (or rotted) cell touching your network. Costs energy.
 - **RMB** — cut your own root; refunds 50% of the energy and leaves rot behind.
 - **1 / 2 / 3** — plant a companion near the Core (100 seeds): Battery / Moss / Thorn.
+- **M** — mature a new Core (80 seeds); link cores with roots to raise the water cap.
 - **R** — restart after game over.
 
 ## Structure
@@ -64,7 +65,7 @@ the stages progress.
 - [x] Stage 10 — mushrooms and symbiosis
 - [x] Stage 11 — rot as bait
 - [x] Stage 12 — companion plants
-- [ ] Stage 13 — multiple Cores
+- [x] Stage 13 — multiple Cores
 - [ ] Stage 14 — seasons
 - [ ] Stage 15 — full UI
 - [ ] Stage 16 — high-score save

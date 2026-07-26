@@ -1,7 +1,5 @@
 package world
 
-import "math/rand"
-
 const (
 	maxSpores          = 4
 	sporeSpawnInterval = 7.0 // seconds between spore appearances
@@ -29,7 +27,7 @@ func (g *Grid) spawnSpore() {
 		return
 	}
 	for try := 0; try < 40; try++ {
-		c, r := rand.Intn(Cols), rand.Intn(Rows)
+		c, r := randInsetCell()
 		if g.cells[r][c] == Empty {
 			g.cells[r][c] = Spore
 			g.spores = append(g.spores, [2]int{c, r})

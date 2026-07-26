@@ -122,10 +122,7 @@ func (g *Grid) Damage(col, row, dmg int) {
 		g.mushroom[row][col] = false
 		g.recomputeConnectivity()
 	case Core:
-		g.coreHP -= dmg
-		if g.coreHP < 0 {
-			g.coreHP = 0
-		}
+		g.damageCore(col, row, dmg)
 	}
 }
 
