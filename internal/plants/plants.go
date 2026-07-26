@@ -1,0 +1,93 @@
+// Package plants holds the companion plants ("pets") the player seeds near a
+// Core (GDD §5). They do not conduct water; each radiates an aura:
+//
+//   - Battery (yellow): +20% energy regen.
+//   - Moss (blue):      -10% water cost of energy regen.
+//   - Thorn (white):    keeps nearby water sources from freezing in winter
+//     (takes effect in Stage 14).
+//
+// Auras are applied globally as economy multipliers, since the economy is a
+// single pool; each plant's radius is drawn for feedback.
+package plants
+
+import (
+	"image/color"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+)
+
+type Kind int
+
+const (
+	Battery Kind = iota
+	Moss
+	Thorn
+	kindCount
+)
+
+const (
+	SeedCost   = 20.0
+	auraRadius = 3
+
+	batteryEnergyBonus = 0.20
+	mossWaterSaving    = 0.10
+	waterMultFloor     = 0.5
+)
+
+type Plant struct {
+	Col, Row int
+	Kind     Kind
+}
+
+type Manager struct {
+	plants []Plant
+}
+
+func NewManager() *Manager { return &Manager{} }
+
+func (m *Manager) Add(col, row int, k Kind) {
+	m.plants = append(m.plants, Plant{Col: col, Row: row, Kind: k})
+}
+
+func (m *Manager) Count() int { return len(m.plants) }
+
+// Modifiers aggregates the plant auras into economy multipliers: energy regen
+// speed and water cost of that regen.
+func (m *Manager) Modifiers() (energyMult, waterMult float64) {
+	energyMult, waterMult = 1, 1
+	for _, p := range m.plants {
+		switch p.Kind {
+		case Battery:
+			energyMult += batteryEnergyBonus
+		case Moss:
+			waterMult -= mossWaterSaving
+		}
+	}
+	if waterMult < waterMultFloor {
+		waterMult = waterMultFloor
+	}
+	return energyMult, waterMult
+}
+
+var plantColor = [kindCount]color.RGBA{
+	Battery: {0xff, 0xd7, 0x4c, 0xff},
+	Moss:    {0x4c, 0xa8, 0xff, 0xff},
+	Thorn:   {0xe8, 0xee, 0xf5, 0xff},
+}
+
+var auraColor = [kindCount]color.RGBA{
+	Battery: {0xff, 0xd7, 0x4c, 0x22},
+	Moss:    {0x4c, 0xa8, 0xff, 0x22},
+	Thorn:   {0xe8, 0xee, 0xf5, 0x22},
+}
+
+func (m *Manager) Draw(screen *ebiten.Image, cell int) {
+	half := float32(cell) / 2
+	for _, p := range m.plants {
+		cx := float32(p.Col*cell) + half
+		cy := float32(p.Row*cell) + half
+		vector.DrawFilledCircle(screen, cx, cy, float32(auraRadius*cell), auraColor[p.Kind], true)
+		vector.DrawFilledRect(screen, float32(p.Col*cell), float32(p.Row*cell), float32(cell), float32(cell), plantColor[p.Kind], false)
+	}
+}

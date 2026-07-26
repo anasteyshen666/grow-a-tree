@@ -5,7 +5,7 @@ import "math/rand"
 // walkable reports whether a bug can crawl across the cell.
 func (g *Grid) walkable(col, row int) bool {
 	k := g.Kind(col, row)
-	return k == Empty || k == Rot
+	return k == Empty || k == Rot || k == Plant
 }
 
 // hasRootOrCore reports whether any orthogonal neighbor is a Root or Core,

@@ -17,7 +17,7 @@ func TestEnergyRegenConsumesWater(t *testing.T) {
 	r := New()
 	r.Energy.Cur, r.Water.Cur = 0, 100
 	before := r.Water.Cur
-	r.regenEnergy(1)
+	r.regenEnergy(1, 1, 1)
 	if r.Energy.Cur <= 0 {
 		t.Fatal("energy did not regenerate")
 	}
@@ -29,9 +29,30 @@ func TestEnergyRegenConsumesWater(t *testing.T) {
 func TestNoEnergyRegenWithoutWater(t *testing.T) {
 	r := New()
 	r.Energy.Cur, r.Water.Cur = 0, 0
-	r.regenEnergy(1)
+	r.regenEnergy(1, 1, 1)
 	if r.Energy.Cur != 0 {
 		t.Fatalf("energy regenerated without water: %v", r.Energy.Cur)
+	}
+}
+
+func TestBatteryAuraSpeedsRegen(t *testing.T) {
+	base, boosted := New(), New()
+	base.Energy.Cur, boosted.Energy.Cur = 0, 0
+	base.regenEnergy(1, 1.0, 1)
+	boosted.regenEnergy(1, 1.2, 1) // +20% battery aura
+	if boosted.Energy.Cur <= base.Energy.Cur {
+		t.Fatal("battery aura did not speed up energy regen")
+	}
+}
+
+func TestTrySpendSeeds(t *testing.T) {
+	r := New()
+	r.Seeds.Cur = 30
+	if !r.TrySpendSeeds(20) || r.Seeds.Cur != 10 {
+		t.Fatalf("seed spend failed, seeds=%v", r.Seeds.Cur)
+	}
+	if r.TrySpendSeeds(20) {
+		t.Fatal("spent seeds it did not have")
 	}
 }
 

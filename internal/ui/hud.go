@@ -49,6 +49,11 @@ func DrawCoreHP(screen *ebiten.Image, hp int) {
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Core HP: %d", hp), labelX, topY+3*rowH-2)
 }
 
+// DrawPlantHint shows the planting keys along the bottom-left.
+func DrawPlantHint(screen *ebiten.Image, screenH int) {
+	ebitenutil.DebugPrintAt(screen, "Plant near Core (20 seeds): 1 Battery  2 Moss  3 Thorn", labelX, screenH-18)
+}
+
 var colorGameOverVeil = color.RGBA{0x00, 0x00, 0x00, 0xb0}
 
 // DrawGameOver dims the field and shows the result with a restart hint.

@@ -11,6 +11,7 @@ const (
 	Rot
 	Water
 	Spore
+	Plant
 )
 
 const (

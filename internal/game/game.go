@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"growtree/internal/enemies"
+	"growtree/internal/plants"
 	"growtree/internal/resources"
 	"growtree/internal/ui"
 	"growtree/internal/waves"
@@ -24,20 +25,31 @@ const (
 var backgroundColor = color.RGBA{R: 0x0b, G: 0x0d, B: 0x12, A: 0xff}
 
 type Game struct {
-	grid  *world.Grid
-	res   *resources.Resources
-	bugs  *enemies.Manager
-	waves *waves.Manager
-	over  bool
+	grid   *world.Grid
+	res    *resources.Resources
+	bugs   *enemies.Manager
+	waves  *waves.Manager
+	plants *plants.Manager
+	over   bool
 }
 
 func New() *Game {
 	return &Game{
-		grid:  world.NewGrid(),
-		res:   resources.New(),
-		bugs:  enemies.NewManager(),
-		waves: waves.NewManager(),
+		grid:   world.NewGrid(),
+		res:    resources.New(),
+		bugs:   enemies.NewManager(),
+		waves:  waves.NewManager(),
+		plants: plants.NewManager(),
 	}
+}
+
+var plantKeys = [...]struct {
+	key  ebiten.Key
+	kind plants.Kind
+}{
+	{ebiten.Key1, plants.Battery},
+	{ebiten.Key2, plants.Moss},
+	{ebiten.Key3, plants.Thorn},
 }
 
 func (g *Game) Update() error {
@@ -50,7 +62,8 @@ func (g *Game) Update() error {
 
 	g.grid.Update(secondsPerTick, g.waves.Number())
 	g.res.AddWater(g.grid.MineWater(secondsPerTick))
-	g.res.Update(secondsPerTick)
+	energyMult, waterMult := g.plants.Modifiers()
+	g.res.Update(secondsPerTick, energyMult, waterMult)
 
 	for n := g.waves.Update(secondsPerTick, g.bugs.Count()); n > 0; n-- {
 		g.bugs.Spawn(g.grid, g.waves.Number())
@@ -74,18 +87,29 @@ func (g *Game) Update() error {
 			g.res.AddEnergy(resources.RootRefund)
 		}
 	}
+	for _, pk := range plantKeys {
+		if inpututil.IsKeyJustPressed(pk.key) {
+			col, row := world.CellAt(ebiten.CursorPosition())
+			if g.grid.CanPlant(col, row) && g.res.TrySpendSeeds(plants.SeedCost) {
+				g.grid.SetPlant(col, row)
+				g.plants.Add(col, row, pk.kind)
+			}
+		}
+	}
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(backgroundColor)
 	g.grid.Draw(screen)
+	g.plants.Draw(screen, world.CellSize)
 	col, row := world.CellAt(ebiten.CursorPosition())
 	g.grid.DrawHover(screen, col, row)
 	g.bugs.Draw(screen, world.CellSize)
 	ui.DrawResources(screen, g.res)
 	ui.DrawCoreHP(screen, g.grid.CoreHP())
 	ui.DrawWaveInfo(screen, ScreenWidth-160, g.waves.Number(), g.waves.InPrep(), g.waves.PrepRemaining())
+	ui.DrawPlantHint(screen, ScreenHeight)
 	if g.over {
 		ui.DrawGameOver(screen, ScreenWidth, ScreenHeight, g.waves.Number())
 	}
