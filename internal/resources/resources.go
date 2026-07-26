@@ -33,21 +33,25 @@ type Resources struct {
 }
 
 const (
-	BaseWaterMax     = 100.0
-	WaterPerCoreLink = 50.0 // each core-to-core link raises the water cap
+	BaseWaterMax  = 100.0
+	BaseEnergyMax = 100.0
+	PerCoreLink   = 50.0 // each core-to-core link raises the water and energy caps
 )
 
 func New() *Resources {
 	return &Resources{
-		Energy: Pool{Cur: 100, Max: 100},
-		Water:  Pool{Cur: 100, Max: BaseWaterMax},
+		Energy: Pool{Cur: BaseEnergyMax, Max: BaseEnergyMax},
+		Water:  Pool{Cur: BaseWaterMax, Max: BaseWaterMax},
 		Seeds:  Pool{Cur: 0, Max: 100},
 	}
 }
 
-// SetCoreLinks raises the water cap by the number of core-to-core links (GDD §2).
+// SetCoreLinks raises the water and energy caps by the number of core-to-core
+// links (GDD §2).
 func (r *Resources) SetCoreLinks(merges int) {
-	r.Water.Max = BaseWaterMax + float64(merges)*WaterPerCoreLink
+	bonus := float64(merges) * PerCoreLink
+	r.Water.Max = BaseWaterMax + bonus
+	r.Energy.Max = BaseEnergyMax + bonus
 }
 
 // Update ticks the economy. energyMult and waterMult are plant-aura modifiers

@@ -44,6 +44,7 @@ func (g *Grid) spawnSources() {
 		amt := sourceCapacity()
 		g.cells[r][c] = Water
 		g.sources = append(g.sources, &waterSource{col: c, row: r, amount: amt, max: amt})
+		g.emit(FxPlaceWater, c, r)
 	}
 }
 

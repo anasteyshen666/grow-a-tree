@@ -28,6 +28,7 @@ func (g *Grid) damageCore(col, row, dmg int) {
 		return
 	}
 	if c.hp -= dmg; c.hp > 0 {
+		g.emit(FxHitCore, col, row)
 		return
 	}
 	for dr := 0; dr < 2; dr++ {
@@ -35,6 +36,7 @@ func (g *Grid) damageCore(col, row, dmg int) {
 			g.cells[c.row+dr][c.col+dc] = Empty
 		}
 	}
+	g.emit(FxDestroyCore, c.col, c.row)
 	g.removeCore(c)
 	g.recomputeConnectivity()
 }
@@ -56,6 +58,7 @@ func (g *Grid) Mature() bool {
 		col0, row0 := rand.Intn(Cols-3)+1, rand.Intn(Rows-3)+1
 		if g.empty2x2(col0, row0) {
 			g.placeCore(col0, row0)
+			g.emit(FxPlaceCore, col0, row0)
 			g.recomputeConnectivity()
 			return true
 		}

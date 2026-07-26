@@ -120,6 +120,7 @@ func (g *Grid) Damage(col, row, dmg int) {
 	case Root:
 		g.cells[row][col] = Empty
 		g.mushroom[row][col] = false
+		g.emit(FxDestroyRoot, col, row)
 		g.recomputeConnectivity()
 	case Core:
 		g.damageCore(col, row, dmg)

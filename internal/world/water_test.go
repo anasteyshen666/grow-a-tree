@@ -28,6 +28,26 @@ func TestMineWaterNeedsLiveNetwork(t *testing.T) {
 	}
 }
 
+func TestNewUnconnectedCoreMinesAdjacentWater(t *testing.T) {
+	g := bareGrid()
+	col0, row0 := coreCorner()
+
+	// a second core, far from the first and not linked by any roots
+	g.placeCore(col0-8, row0) // cells col0-8 and col0-7
+	g.recomputeConnectivity()
+	if g.CoreMerges() != 0 {
+		t.Fatalf("second core should be unconnected, merges=%d", g.CoreMerges())
+	}
+
+	sc, sr := col0-9, row0 // source right next to the new core's left cell
+	g.cells[sr][sc] = Water
+	g.sources = append(g.sources, &waterSource{col: sc, row: sr, amount: 100, max: 100})
+
+	if got := g.MineWater(1); got <= 0 {
+		t.Fatal("water not mined from a source beside a new, unconnected core")
+	}
+}
+
 func TestDepletedSourceIsReplaced(t *testing.T) {
 	g := NewGrid()
 	for _, s := range g.sources { // clear the random spawn

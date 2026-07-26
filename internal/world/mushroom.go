@@ -48,8 +48,9 @@ func (g *Grid) infectFromSpores() {
 		infected := false
 		for _, d := range neighbors {
 			nc, nr := c+d[0], r+d[1]
-			if g.InBounds(nc, nr) && g.cells[nr][nc] == Root {
+			if g.InBounds(nc, nr) && g.cells[nr][nc] == Root && !g.mushroom[nr][nc] {
 				g.mushroom[nr][nc] = true
+				g.emit(FxPlaceMushroom, nc, nr)
 				infected = true
 			}
 		}

@@ -29,14 +29,18 @@ const (
 	segStep  = 12
 )
 
+var frameTick int
+
+func blinkOn() bool { return (frameTick/18)%2 == 0 }
+
 // drawBar renders a chunky, segmented pixel-style progress bar.
-func drawBar(dst *ebiten.Image, x, y int, frac float64, fill color.Color) {
+func drawBar(dst *ebiten.Image, x, y int, frac float64, fill, border color.Color) {
 	if frac < 0 {
 		frac = 0
 	} else if frac > 1 {
 		frac = 1
 	}
-	vector.DrawFilledRect(dst, float32(x-2), float32(y-2), float32(barW+4), float32(barH+4), barBorder, false)
+	vector.DrawFilledRect(dst, float32(x-2), float32(y-2), float32(barW+4), float32(barH+4), border, false)
 	vector.DrawFilledRect(dst, float32(x), float32(y), float32(barW), float32(barH), barTrack, false)
 	if fw := int(float64(barW) * frac); fw > 0 {
 		vector.DrawFilledRect(dst, float32(x), float32(y), float32(fw), float32(barH), fill, false)
@@ -48,12 +52,15 @@ func drawBar(dst *ebiten.Image, x, y int, frac float64, fill color.Color) {
 
 // DrawResources draws the three resource bars in the left panel at (x,y).
 func DrawResources(dst *ebiten.Image, r *resources.Resources, x, y int) {
-	drawResource(dst, x, y+0, "ENERGY", r.Energy, colorEnergy)
-	drawResource(dst, x, y+56, "WATER", r.Water, colorWater)
-	drawResource(dst, x, y+112, "SEEDS", r.Seeds, colorSeeds)
+	frameTick++
+	drawResource(dst, x, y+0, "ENERGY", r.Energy, colorEnergy, true)
+	drawResource(dst, x, y+56, "WATER", r.Water, colorWater, true)
+	drawResource(dst, x, y+112, "SEEDS", r.Seeds, colorSeeds, false)
 }
 
-func drawResource(dst *ebiten.Image, x, y int, label string, p resources.Pool, fill color.Color) {
+// drawResource draws one labeled bar. When warnEmpty is set and the pool is
+// empty, the bar border blinks red.
+func drawResource(dst *ebiten.Image, x, y int, label string, p resources.Pool, fill color.Color, warnEmpty bool) {
 	drawText(dst, label, x, y, bodySize, colorLabel)
 	val := fmt.Sprintf("%d/%d", int(p.Cur), int(p.Max))
 	drawText(dst, val, x+barW-textWidth(val, bodySize), y, bodySize, colorLabel)
@@ -61,7 +68,11 @@ func drawResource(dst *ebiten.Image, x, y int, label string, p resources.Pool, f
 	if p.Max > 0 {
 		frac = p.Cur / p.Max
 	}
-	drawBar(dst, x, y+22, frac, fill)
+	var border color.Color = barBorder
+	if warnEmpty && p.Cur < 1 && blinkOn() {
+		border = colorDanger
+	}
+	drawBar(dst, x, y+22, frac, fill, border)
 }
 
 // DrawStatus shows the number of Cores and their total HP.

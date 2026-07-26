@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"growtree/internal/enemies"
+	"growtree/internal/fx"
 	"growtree/internal/plants"
 	"growtree/internal/resources"
 	"growtree/internal/ui"
@@ -37,6 +38,7 @@ type Game struct {
 	bugs   *enemies.Manager
 	waves  *waves.Manager
 	plants *plants.Manager
+	fx     *fx.Manager
 	field  *ebiten.Image
 	over   bool
 }
@@ -48,6 +50,41 @@ func New() *Game {
 		bugs:   enemies.NewManager(),
 		waves:  waves.NewManager(),
 		plants: plants.NewManager(),
+		fx:     fx.New(world.CellSize),
+	}
+}
+
+var (
+	fxRoot     = color.RGBA{0x2f, 0xa8, 0x6b, 0xff}
+	fxWater    = color.RGBA{0x3c, 0x9a, 0xff, 0xff}
+	fxMushroom = color.RGBA{0x35, 0xe0, 0xc4, 0xff}
+	fxCore     = color.RGBA{0x5a, 0xff, 0xc4, 0xff}
+	fxHit      = color.RGBA{0xff, 0xff, 0xff, 0xff}
+	fxDestroy  = color.RGBA{0xff, 0x6e, 0x4c, 0xff}
+	fxCoreDead = color.RGBA{0xff, 0x4c, 0x5e, 0xff}
+)
+
+// applyFx turns the grid's reported events into visual effects.
+func (g *Game) applyFx() {
+	for _, e := range g.grid.DrainFx() {
+		switch e.Kind {
+		case world.FxPlaceRoot:
+			g.fx.Pop(e.Col, e.Row, fxRoot)
+		case world.FxPlaceWater:
+			g.fx.Pop(e.Col, e.Row, fxWater)
+		case world.FxPlaceMushroom:
+			g.fx.Pop(e.Col, e.Row, fxMushroom)
+		case world.FxPlaceCore:
+			g.fx.Pop(e.Col, e.Row, fxCore)
+			g.fx.Pop(e.Col+1, e.Row+1, fxCore)
+		case world.FxHitCore:
+			g.fx.Flash(e.Col, e.Row, fxHit)
+		case world.FxDestroyRoot:
+			g.fx.Burst(e.Col, e.Row, fxDestroy, 12)
+		case world.FxDestroyCore:
+			g.fx.Burst(e.Col, e.Row, fxCoreDead, 24)
+			g.fx.Burst(e.Col+1, e.Row+1, fxCoreDead, 24)
+		}
 	}
 }
 
@@ -90,6 +127,9 @@ func (g *Game) Update() error {
 		g.bugs.Spawn(g.grid, g.waves.Number())
 	}
 	g.bugs.Update(secondsPerTick, g.grid)
+
+	g.applyFx()
+	g.fx.Update(secondsPerTick)
 
 	if g.grid.CoreCount() == 0 {
 		g.over = true
@@ -135,6 +175,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.grid.DrawHover(g.field, col, row)
 	}
 	g.bugs.Draw(g.field, world.CellSize)
+	g.fx.Draw(g.field)
 
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(fieldOX, fieldOY)

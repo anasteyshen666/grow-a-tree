@@ -36,6 +36,7 @@ type Grid struct {
 	mushroom   [Rows][Cols]bool
 	spores     [][2]int
 	sporeTimer float64
+	fxEvents   []FxEvent
 }
 
 func NewGrid() *Grid {
@@ -43,6 +44,7 @@ func NewGrid() *Grid {
 	g.placeCore(Cols/2-1, Rows/2-1)
 	g.spawnSources()
 	g.recomputeConnectivity()
+	g.fxEvents = nil // suppress spawn effects for the initial world
 	return g
 }
 
@@ -120,6 +122,7 @@ func (g *Grid) Grow(col, row int) bool {
 		g.removeRot(col, row)
 	}
 	g.cells[row][col] = Root
+	g.emit(FxPlaceRoot, col, row)
 	g.recomputeConnectivity()
 	return true
 }
