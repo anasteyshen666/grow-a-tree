@@ -26,6 +26,15 @@ go build -o bin/growtree.exe ./cmd/game
 - **M** — mature a new Core (80 seeds); link cores with roots to raise the water cap.
 - **R** — restart after game over.
 
+The game runs fullscreen: the square play field sits centered with a HUD panel
+on each side (resource bars, cores/HP, controls, and the wave counter), so the
+UI never covers the field.
+
+## Credits
+
+- Font: **Dogica** by Roberto Mocci, licensed under the SIL Open Font License 1.1
+  (see [assets/dogica_license.txt](assets/dogica_license.txt)).
+
 ## Structure
 
 ```

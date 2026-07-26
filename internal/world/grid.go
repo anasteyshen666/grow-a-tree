@@ -15,7 +15,7 @@ const (
 )
 
 const (
-	Cols     = 40
+	Cols     = 30
 	Rows     = 30
 	CellSize = 24
 

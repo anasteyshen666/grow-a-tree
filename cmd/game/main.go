@@ -15,6 +15,7 @@ func main() {
 	ebiten.SetWindowSize(game.ScreenWidth, game.ScreenHeight)
 	ebiten.SetWindowTitle("Grow a Tree")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.SetFullscreen(true)
 
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)

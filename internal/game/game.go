@@ -16,13 +16,20 @@ import (
 )
 
 const (
-	ScreenWidth  = world.Cols * world.CellSize
-	ScreenHeight = world.Rows * world.CellSize
+	fieldPx = world.Cols * world.CellSize // square play field (720)
+
+	// The logical canvas is 16:9; the square field sits centered with a HUD
+	// panel on each side. Fullscreen scales this whole canvas.
+	ScreenWidth  = 1280
+	ScreenHeight = 720
+
+	fieldOX = (ScreenWidth - fieldPx) / 2
+	fieldOY = (ScreenHeight - fieldPx) / 2
 
 	secondsPerTick = 1.0 / 60.0
 )
 
-var backgroundColor = color.RGBA{R: 0x0b, G: 0x0d, B: 0x12, A: 0xff}
+var panelColor = color.RGBA{R: 0x07, G: 0x09, B: 0x0d, A: 0xff}
 
 type Game struct {
 	grid   *world.Grid
@@ -30,6 +37,7 @@ type Game struct {
 	bugs   *enemies.Manager
 	waves  *waves.Manager
 	plants *plants.Manager
+	field  *ebiten.Image
 	over   bool
 }
 
@@ -50,6 +58,18 @@ var plantKeys = [...]struct {
 	{ebiten.Key1, plants.Battery},
 	{ebiten.Key2, plants.Moss},
 	{ebiten.Key3, plants.Thorn},
+}
+
+// fieldCell maps the cursor to a grid cell, or ok=false when it is outside the
+// play field (over a side panel).
+func (g *Game) fieldCell() (col, row int, ok bool) {
+	cx, cy := ebiten.CursorPosition()
+	fx, fy := cx-fieldOX, cy-fieldOY
+	if fx < 0 || fy < 0 || fx >= fieldPx || fy >= fieldPx {
+		return 0, 0, false
+	}
+	col, row = world.CellAt(fx, fy)
+	return col, row, true
 }
 
 func (g *Game) Update() error {
@@ -77,21 +97,18 @@ func (g *Game) Update() error {
 	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		col, row := world.CellAt(ebiten.CursorPosition())
-		if g.grid.CanGrow(col, row) && g.res.TrySpendEnergy(resources.RootEnergyCost) {
+		if col, row, ok := g.fieldCell(); ok && g.grid.CanGrow(col, row) && g.res.TrySpendEnergy(resources.RootEnergyCost) {
 			g.grid.Grow(col, row)
 		}
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
-		col, row := world.CellAt(ebiten.CursorPosition())
-		if g.grid.Cut(col, row) {
+		if col, row, ok := g.fieldCell(); ok && g.grid.Cut(col, row) {
 			g.res.AddEnergy(resources.RootRefund)
 		}
 	}
 	for _, pk := range plantKeys {
 		if inpututil.IsKeyJustPressed(pk.key) {
-			col, row := world.CellAt(ebiten.CursorPosition())
-			if g.grid.CanPlant(col, row) && g.res.TrySpendSeeds(plants.SeedCost) {
+			if col, row, ok := g.fieldCell(); ok && g.grid.CanPlant(col, row) && g.res.TrySpendSeeds(plants.SeedCost) {
 				g.grid.SetPlant(col, row)
 				g.plants.Add(col, row, pk.kind)
 			}
@@ -106,16 +123,29 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(backgroundColor)
-	g.grid.Draw(screen)
-	g.plants.Draw(screen, world.CellSize)
-	col, row := world.CellAt(ebiten.CursorPosition())
-	g.grid.DrawHover(screen, col, row)
-	g.bugs.Draw(screen, world.CellSize)
-	ui.DrawResources(screen, g.res)
-	ui.DrawCoreHP(screen, g.grid.CoreCount(), g.grid.CoreHP())
-	ui.DrawWaveInfo(screen, ScreenWidth-160, g.waves.Number(), g.waves.InPrep(), g.waves.PrepRemaining())
-	ui.DrawPlantHint(screen, ScreenHeight)
+	if g.field == nil {
+		g.field = ebiten.NewImage(fieldPx, fieldPx)
+	}
+	screen.Fill(panelColor)
+
+	g.field.Clear()
+	g.grid.Draw(g.field)
+	g.plants.Draw(g.field, world.CellSize)
+	if col, row, ok := g.fieldCell(); ok {
+		g.grid.DrawHover(g.field, col, row)
+	}
+	g.bugs.Draw(g.field, world.CellSize)
+
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(fieldOX, fieldOY)
+	screen.DrawImage(g.field, op)
+
+	rightX := fieldOX + fieldPx + 16
+	ui.DrawResources(screen, g.res, 16, 40)
+	ui.DrawStatus(screen, g.grid.CoreCount(), g.grid.CoreHP(), 16, 220)
+	ui.DrawControls(screen, 16, ScreenHeight-140)
+	ui.DrawWaveInfo(screen, rightX, 40, g.waves.Number(), g.waves.InPrep(), g.waves.PrepRemaining())
+
 	if g.over {
 		ui.DrawGameOver(screen, ScreenWidth, ScreenHeight, g.waves.Number())
 	}
