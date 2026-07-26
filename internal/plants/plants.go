@@ -27,7 +27,7 @@ const (
 )
 
 const (
-	SeedCost   = 20.0
+	SeedCost   = 100.0
 	auraRadius = 3
 
 	batteryEnergyBonus = 0.20
@@ -77,9 +77,9 @@ var plantColor = [kindCount]color.RGBA{
 }
 
 var auraColor = [kindCount]color.RGBA{
-	Battery: {0xff, 0xd7, 0x4c, 0x22},
-	Moss:    {0x4c, 0xa8, 0xff, 0x22},
-	Thorn:   {0xe8, 0xee, 0xf5, 0x22},
+	Battery: {0xff, 0xd7, 0x4c, 0xaa},
+	Moss:    {0x4c, 0xa8, 0xff, 0xaa},
+	Thorn:   {0xe8, 0xee, 0xf5, 0xaa},
 }
 
 func (m *Manager) Draw(screen *ebiten.Image, cell int) {
@@ -87,7 +87,7 @@ func (m *Manager) Draw(screen *ebiten.Image, cell int) {
 	for _, p := range m.plants {
 		cx := float32(p.Col*cell) + half
 		cy := float32(p.Row*cell) + half
-		vector.DrawFilledCircle(screen, cx, cy, float32(auraRadius*cell), auraColor[p.Kind], true)
+		vector.StrokeCircle(screen, cx, cy, float32(auraRadius*cell), 1.5, auraColor[p.Kind], true)
 		vector.DrawFilledRect(screen, float32(p.Col*cell), float32(p.Row*cell), float32(cell), float32(cell), plantColor[p.Kind], false)
 	}
 }

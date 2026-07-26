@@ -7,6 +7,7 @@ import "math/rand"
 type waterSource struct {
 	col, row int
 	amount   float64
+	max      float64
 }
 
 const (
@@ -15,14 +16,28 @@ const (
 	mineRatePerSec  = 8.0
 )
 
+// sourceCapacity rolls a source's size: usually single, sometimes double, and
+// rarely triple — bigger ones hold more water and so last longer.
+func sourceCapacity() float64 {
+	switch r := rand.Float64(); {
+	case r < 0.04:
+		return SourceMaxAmount * 3
+	case r < 0.20:
+		return SourceMaxAmount * 2
+	default:
+		return SourceMaxAmount
+	}
+}
+
 func (g *Grid) spawnSources() {
 	for len(g.sources) < sourceCount {
 		c, r := rand.Intn(Cols), rand.Intn(Rows)
 		if g.cells[r][c] != Empty {
 			continue
 		}
+		amt := sourceCapacity()
 		g.cells[r][c] = Water
-		g.sources = append(g.sources, &waterSource{col: c, row: r, amount: SourceMaxAmount})
+		g.sources = append(g.sources, &waterSource{col: c, row: r, amount: amt, max: amt})
 	}
 }
 

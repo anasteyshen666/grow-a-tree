@@ -22,7 +22,7 @@ go build -o bin/growtree.exe ./cmd/game
 
 - **LMB** — grow a root into an empty (or rotted) cell touching your network. Costs energy.
 - **RMB** — cut your own root; refunds 50% of the energy and leaves rot behind.
-- **1 / 2 / 3** — plant a companion near the Core (20 seeds): Battery / Moss / Thorn.
+- **1 / 2 / 3** — plant a companion near the Core (100 seeds): Battery / Moss / Thorn.
 - **R** — restart after game over.
 
 ## Structure

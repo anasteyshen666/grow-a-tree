@@ -23,7 +23,7 @@ const (
 	// second as before (regen*waterPerEnergy is unchanged at 3/sec).
 	energyRegenPerSec = 3.0
 	waterPerEnergy    = 1.0
-	seedsRegenPerSec  = 2.0
+	seedsRegenPerSec  = 1.0
 )
 
 type Resources struct {

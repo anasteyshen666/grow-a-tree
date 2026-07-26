@@ -8,14 +8,7 @@ import (
 )
 
 var (
-	colorGridLine = color.RGBA{0x16, 0x1b, 0x24, 0xff}
-	colorCore     = color.RGBA{0x5a, 0xff, 0xc4, 0xff}
-	colorRoot     = color.RGBA{0x2f, 0xa8, 0x6b, 0xff}
-	colorRootDead = color.RGBA{0x3a, 0x44, 0x3d, 0xff}
-	colorMushroom = color.RGBA{0x35, 0xe0, 0xc4, 0xff}
-	colorRot      = color.RGBA{0x6b, 0x4a, 0x2f, 0xff}
-	colorSource   = color.RGBA{0x3c, 0x9a, 0xff, 0xff}
-	colorSpore    = color.RGBA{0xf5, 0xd0, 0x3c, 0xff}
+	colorGridLine = color.RGBA{0x1b, 0x21, 0x2c, 0xff}
 	colorGrowOK   = color.RGBA{0x5a, 0xff, 0xc4, 0x55}
 	colorCut      = color.RGBA{0xff, 0x6e, 0x4c, 0x66}
 )
@@ -25,23 +18,26 @@ var (
 var gridLines *ebiten.Image
 
 func (g *Grid) Draw(screen *ebiten.Image) {
+	ensureSprites()
+	drawTerrain(screen)
 	drawLines(screen)
+
 	for row := 0; row < Rows; row++ {
 		for col := 0; col < Cols; col++ {
 			switch g.cells[row][col] {
 			case Core:
-				fillCell(screen, col, row, colorCore)
+				drawTile(screen, sprCore, col, row)
 			case Root:
 				switch {
 				case !g.connected[row][col]:
-					fillCell(screen, col, row, colorRootDead)
+					drawTileDim(screen, sprRoot, col, row, deadRootDim) // dead root = dimmed
 				case g.mushroom[row][col]:
-					fillCell(screen, col, row, colorMushroom)
+					drawTile(screen, sprMushroom, col, row)
 				default:
-					fillCell(screen, col, row, colorRoot)
+					drawTile(screen, sprRoot, col, row)
 				}
 			case Spore:
-				fillCell(screen, col, row, colorSpore)
+				drawTile(screen, sprSpore, col, row)
 			}
 		}
 	}
@@ -49,18 +45,23 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	g.drawSources(screen)
 }
 
-// drawRots draws rot tiles, fading them as they age toward crumbling away.
+// drawRots draws rot tiles, fading them out as they age toward crumbling away.
 func (g *Grid) drawRots(screen *ebiten.Image) {
 	for _, rt := range g.rots {
-		f := 0.35 + 0.65*(rt.ttl/rotLifetime)
-		fillCell(screen, rt.col, rt.row, scale(colorRot, f))
+		a := float32(0.35 + 0.65*(rt.ttl/rotLifetime))
+		drawTileAlpha(screen, sprRot, rt.col, rt.row, a)
 	}
 }
 
+// drawSources draws water tiles, fading them as they deplete.
 func (g *Grid) drawSources(screen *ebiten.Image) {
 	for _, s := range g.sources {
-		f := 0.4 + 0.6*(s.amount/SourceMaxAmount)
-		fillCell(screen, s.col, s.row, scale(colorSource, f))
+		max := s.max
+		if max <= 0 {
+			max = SourceMaxAmount
+		}
+		a := float32(0.45 + 0.55*(s.amount/max))
+		drawTileAlpha(screen, sprWater, s.col, s.row, a)
 	}
 }
 
@@ -96,8 +97,4 @@ func drawLines(screen *ebiten.Image) {
 		}
 	}
 	screen.DrawImage(gridLines, nil)
-}
-
-func scale(c color.RGBA, f float64) color.RGBA {
-	return color.RGBA{uint8(float64(c.R) * f), uint8(float64(c.G) * f), uint8(float64(c.B) * f), c.A}
 }

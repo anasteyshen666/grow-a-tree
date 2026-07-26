@@ -51,7 +51,7 @@ func DrawCoreHP(screen *ebiten.Image, hp int) {
 
 // DrawPlantHint shows the planting keys along the bottom-left.
 func DrawPlantHint(screen *ebiten.Image, screenH int) {
-	ebitenutil.DebugPrintAt(screen, "Plant near Core (20 seeds): 1 Battery  2 Moss  3 Thorn", labelX, screenH-18)
+	ebitenutil.DebugPrintAt(screen, "Plant near Core (100 seeds): 1 Battery  2 Moss  3 Thorn", labelX, screenH-18)
 }
 
 var colorGameOverVeil = color.RGBA{0x00, 0x00, 0x00, 0xb0}
