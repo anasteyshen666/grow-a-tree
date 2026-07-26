@@ -121,7 +121,8 @@ func (g *Game) Update() error {
 	g.res.SetCoreLinks(g.grid.CoreMerges())
 	g.res.AddWater(g.grid.MineWater(secondsPerTick))
 	energyMult, waterMult := g.plants.Modifiers()
-	g.res.Update(secondsPerTick, energyMult, waterMult)
+	upkeep := float64(g.grid.CoreCount()-1) * resources.WaterUpkeepPerCore
+	g.res.Update(secondsPerTick, energyMult, waterMult, upkeep)
 
 	for n := g.waves.Update(secondsPerTick, g.bugs.Count()); n > 0; n-- {
 		g.bugs.Spawn(g.grid, g.waves.Number())

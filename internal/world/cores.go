@@ -3,7 +3,7 @@ package world
 import "math/rand"
 
 // MatureSeedCost is the seed price of maturing a new Core (spent by the caller).
-const MatureSeedCost = 80
+const MatureSeedCost = 100
 
 // core is one tree's 2x2 heart, tracked by its top-left cell and its own HP.
 type core struct {
@@ -59,6 +59,7 @@ func (g *Grid) Mature() bool {
 		if g.empty2x2(col0, row0) {
 			g.placeCore(col0, row0)
 			g.emit(FxPlaceCore, col0, row0)
+			g.spawnSources() // a bigger network gets one more water source
 			g.recomputeConnectivity()
 			return true
 		}

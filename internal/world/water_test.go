@@ -62,8 +62,8 @@ func TestDepletedSourceIsReplaced(t *testing.T) {
 	g.sources = append(g.sources, old)
 
 	g.MineWater(1) // rate outpaces the tiny amount, so it empties and respawns
-	if len(g.sources) != sourceCount {
-		t.Fatalf("map should refill to %d sources, got %d", sourceCount, len(g.sources))
+	if len(g.sources) != baseSourceCount {
+		t.Fatalf("map should refill to %d sources, got %d", baseSourceCount, len(g.sources))
 	}
 	for _, s := range g.sources {
 		if s == old {

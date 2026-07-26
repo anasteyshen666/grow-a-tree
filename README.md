@@ -22,8 +22,8 @@ go build -o bin/growtree.exe ./cmd/game
 
 - **LMB** — grow a root into an empty (or rotted) cell touching your network. Costs energy.
 - **RMB** — cut your own root; refunds 50% of the energy and leaves rot behind.
-- **1 / 2 / 3** — plant a companion near the Core (100 seeds): Battery / Moss / Thorn.
-- **M** — mature a new Core (80 seeds); link cores with roots to raise the water cap.
+- **1 / 2 / 3** — plant a companion near the Core (80 seeds): Battery / Moss / Thorn.
+- **M** — mature a new Core (100 seeds); link cores with roots to raise the water/energy caps. Each extra Core also drains water faster and spawns one more source.
 - **R** — restart after game over.
 
 The game runs fullscreen: the square play field sits centered with a HUD panel

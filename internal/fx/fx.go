@@ -39,8 +39,8 @@ func (m *Manager) Burst(col, row int, c color.RGBA, count int) {
 	cy := float64(row*m.cell) + float64(m.cell)/2
 	for i := 0; i < count; i++ {
 		ang := rand.Float64() * 2 * math.Pi
-		spd := 40 + rand.Float64()*90
-		life := 0.35 + rand.Float64()*0.35
+		spd := 55 + rand.Float64()*120
+		life := 0.2 + rand.Float64()*0.2
 		m.particles = append(m.particles, &particle{
 			x: cx, y: cy,
 			vx:   spd * math.Cos(ang),
@@ -54,12 +54,12 @@ func (m *Manager) Burst(col, row int, c color.RGBA, count int) {
 
 // Pop plays an expanding-outline "appear" effect on a cell.
 func (m *Manager) Pop(col, row int, c color.RGBA) {
-	m.overlays = append(m.overlays, &overlay{col: col, row: row, life: 0.3, max: 0.3, c: c, ring: true})
+	m.overlays = append(m.overlays, &overlay{col: col, row: row, life: 0.18, max: 0.18, c: c, ring: true})
 }
 
 // Flash briefly tints a cell (a core taking a hit).
 func (m *Manager) Flash(col, row int, c color.RGBA) {
-	m.overlays = append(m.overlays, &overlay{col: col, row: row, life: 0.18, max: 0.18, c: c, ring: false})
+	m.overlays = append(m.overlays, &overlay{col: col, row: row, life: 0.1, max: 0.1, c: c, ring: false})
 }
 
 func (m *Manager) Update(dt float64) {

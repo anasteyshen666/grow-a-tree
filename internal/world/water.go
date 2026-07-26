@@ -11,10 +11,14 @@ type waterSource struct {
 }
 
 const (
-	sourceCount     = 5
+	baseSourceCount = 5
 	SourceMaxAmount = 120.0
 	mineRatePerSec  = 8.0
 )
+
+// sourceTarget is how many sources the map should hold: the base count plus one
+// per extra Core, so a bigger network has more water to draw from.
+func (g *Grid) sourceTarget() int { return baseSourceCount + len(g.cores) - 1 }
 
 // sourceCapacity rolls a source's size: usually single, sometimes double, and
 // rarely triple — bigger ones hold more water and so last longer.
@@ -36,7 +40,7 @@ func randInsetCell() (col, row int) {
 }
 
 func (g *Grid) spawnSources() {
-	for len(g.sources) < sourceCount {
+	for len(g.sources) < g.sourceTarget() {
 		c, r := randInsetCell()
 		if g.cells[r][c] != Empty {
 			continue

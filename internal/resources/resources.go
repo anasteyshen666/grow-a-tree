@@ -36,6 +36,10 @@ const (
 	BaseWaterMax  = 100.0
 	BaseEnergyMax = 100.0
 	PerCoreLink   = 50.0 // each core-to-core link raises the water and energy caps
+
+	// WaterUpkeepPerCore is water/sec drained per extra Core: more trees give
+	// more storage but cost more to sustain.
+	WaterUpkeepPerCore = 3.0
 )
 
 func New() *Resources {
@@ -56,8 +60,12 @@ func (r *Resources) SetCoreLinks(merges int) {
 
 // Update ticks the economy. energyMult and waterMult are plant-aura modifiers
 // (1 = no plants): energyMult speeds regen, waterMult scales its water cost.
-func (r *Resources) Update(dt, energyMult, waterMult float64) {
+// waterUpkeep is water/sec drained passively by extra Cores.
+func (r *Resources) Update(dt, energyMult, waterMult, waterUpkeep float64) {
 	r.Seeds.add(seedsRegenPerSec * dt)
+	if waterUpkeep > 0 {
+		r.Water.add(-waterUpkeep * dt)
+	}
 	r.regenEnergy(dt, energyMult, waterMult)
 }
 

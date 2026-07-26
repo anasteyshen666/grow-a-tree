@@ -27,7 +27,7 @@ const (
 )
 
 const (
-	SeedCost   = 100.0
+	SeedCost   = 80.0
 	auraRadius = 3
 
 	batteryEnergyBonus = 0.20

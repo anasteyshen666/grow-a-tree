@@ -62,7 +62,7 @@ func DrawResources(dst *ebiten.Image, r *resources.Resources, x, y int) {
 // empty, the bar border blinks red.
 func drawResource(dst *ebiten.Image, x, y int, label string, p resources.Pool, fill color.Color, warnEmpty bool) {
 	drawText(dst, label, x, y, bodySize, colorLabel)
-	val := fmt.Sprintf("%d/%d", int(p.Cur), int(p.Max))
+	val := fmt.Sprintf("%d/%d", int(p.Cur+0.5), int(p.Max+0.5))
 	drawText(dst, val, x+barW-textWidth(val, bodySize), y, bodySize, colorLabel)
 	frac := 0.0
 	if p.Max > 0 {
@@ -101,8 +101,8 @@ func DrawControls(dst *ebiten.Image, x, y int) {
 	lines := []string{
 		"LMB  GROW ROOT",
 		"RMB  CUT / ROT",
-		"1 2 3  PLANT",
-		"M  NEW CORE",
+		"1 2 3  PLANT (80)",
+		"M  NEW CORE (100)",
 	}
 	for i, s := range lines {
 		drawText(dst, s, x, y+i*22, bodySize, colorLabel)
