@@ -78,6 +78,6 @@ the stages progress.
 - [x] Stage 13 — multiple Cores
 - [x] Stage 14 — seasons
 - [x] Stage 15 — main menu (Start/Exit) and pause (Continue/Menu)
-- [ ] Stage 16 — high-score save
+- [x] Stage 16 — high-score save (max wave in save.json, shown in menu / game over)
 - [ ] Stage 17 — balance and polish
 - [ ] Stage 18 — texture integration

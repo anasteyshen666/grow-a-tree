@@ -2,6 +2,7 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -12,6 +13,7 @@ import (
 	"growtree/internal/fx"
 	"growtree/internal/plants"
 	"growtree/internal/resources"
+	"growtree/internal/save"
 	"growtree/internal/season"
 	"growtree/internal/ui"
 	"growtree/internal/waves"
@@ -47,15 +49,17 @@ type Game struct {
 	plants *plants.Manager
 	fx     *fx.Manager
 	field  *ebiten.Image
+	bloom  *ebiten.Image
 
 	screenW, screenH int
 	state            state
+	high             int
 }
 
 func New() *Game {
 	audio.Init()
 	audio.StartMusic()
-	g := &Game{screenW: ScreenWidth, screenH: ScreenHeight}
+	g := &Game{screenW: ScreenWidth, screenH: ScreenHeight, high: save.Load()}
 	g.startRun()
 	g.state = stateMenu
 	return g
@@ -70,6 +74,28 @@ func (g *Game) startRun() {
 	g.plants = plants.NewManager()
 	g.fx = fx.New(world.CellSize)
 	g.state = statePlaying
+}
+
+const (
+	bloomDiv      = 4   // field is downscaled by this for the blur pass
+	bloomStrength = 0.7 // how strongly the glow is added back
+)
+
+// applyBloom adds a soft neon glow: downscale the field (a cheap blur), then
+// add it back on top with additive blending so bright elements bloom.
+func (g *Game) applyBloom() {
+	if g.bloom == nil {
+		g.bloom = ebiten.NewImage(fieldPx/bloomDiv, fieldPx/bloomDiv)
+	}
+	g.bloom.Clear()
+	down := &ebiten.DrawImageOptions{Filter: ebiten.FilterLinear}
+	down.GeoM.Scale(1.0/bloomDiv, 1.0/bloomDiv)
+	g.bloom.DrawImage(g.field, down)
+
+	up := &ebiten.DrawImageOptions{Filter: ebiten.FilterLinear, Blend: ebiten.BlendLighter}
+	up.GeoM.Scale(bloomDiv, bloomDiv)
+	up.ColorScale.ScaleAlpha(bloomStrength)
+	g.field.DrawImage(g.bloom, up)
 }
 
 // fieldMetrics places the square field: it fills the screen height and is
@@ -225,6 +251,10 @@ func (g *Game) updatePlaying() {
 
 	if g.grid.CoreCount() == 0 {
 		g.state = stateOver
+		if w := g.waves.Number(); w > g.high {
+			g.high = w
+			save.Save(w)
+		}
 		return
 	}
 
@@ -263,7 +293,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case statePaused:
 		g.drawPause(screen)
 	case stateOver:
-		ui.DrawGameOver(screen, g.screenW, g.screenH, g.waves.Number())
+		ui.DrawGameOver(screen, g.screenW, g.screenH, g.waves.Number(), g.high)
 	}
 }
 
@@ -274,6 +304,7 @@ func (g *Game) drawMenu(screen *ebiten.Image) {
 	mx, my := ebiten.CursorPosition()
 	start.Draw(screen, start.Contains(mx, my))
 	exit.Draw(screen, exit.Contains(mx, my))
+	ui.DrawCenteredLabel(screen, g.screenW, g.screenH/2+150, fmt.Sprintf("BEST WAVE  %d", g.high), 20, ui.LabelColor)
 	ui.DrawVersion(screen, g.screenW, g.screenH)
 }
 
@@ -302,9 +333,10 @@ func (g *Game) drawPlaying(screen *ebiten.Image) {
 	}
 	g.bugs.Draw(g.field, world.CellSize)
 	g.fx.Draw(g.field)
+	g.applyBloom()
 
 	scale, ox, oy := g.fieldMetrics()
-	op := &ebiten.DrawImageOptions{Filter: ebiten.FilterNearest}
+	op := &ebiten.DrawImageOptions{Filter: ebiten.FilterLinear}
 	op.GeoM.Scale(scale, scale)
 	op.GeoM.Translate(ox, oy)
 	screen.DrawImage(g.field, op)

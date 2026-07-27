@@ -117,11 +117,12 @@ func DrawControls(dst *ebiten.Image, x, y int) {
 var colorGameOverVeil = color.RGBA{0x00, 0x00, 0x00, 0xc0}
 
 // DrawGameOver dims the screen and shows the result with a restart hint.
-func DrawGameOver(dst *ebiten.Image, w, h, wave int) {
+func DrawGameOver(dst *ebiten.Image, w, h, wave, best int) {
 	vector.DrawFilledRect(dst, 0, 0, float32(w), float32(h), colorGameOverVeil, false)
-	center(dst, "GAME OVER", h/2-60, 48, colorDanger, w)
-	center(dst, fmt.Sprintf("YOU SURVIVED TO WAVE %d", wave), h/2, bodySize, colorLabel, w)
-	center(dst, "PRESS R TO RESTART", h/2+30, bodySize, colorLabel, w)
+	center(dst, "GAME OVER", h/2-70, 48, colorDanger, w)
+	center(dst, fmt.Sprintf("YOU SURVIVED TO WAVE %d", wave), h/2-10, bodySize, colorLabel, w)
+	center(dst, fmt.Sprintf("BEST WAVE  %d", best), h/2+16, bodySize, colorSeeds, w)
+	center(dst, "PRESS R TO RESTART", h/2+46, bodySize, colorLabel, w)
 }
 
 func center(dst *ebiten.Image, s string, y int, size float64, clr color.Color, w int) {
