@@ -36,14 +36,14 @@ func (m *Manager) Update(dt float64, f Field) {
 	m.bugs = kept
 }
 
-// Draw renders each bug as a square sized and colored by its level.
+// Draw renders each bug as a square of its level's pixel size, centered on the
+// cell (bigger levels overflow the cell).
 func (m *Manager) Draw(screen *ebiten.Image, cell int) {
 	for _, b := range m.bugs {
 		st := &levels[b.level]
-		size := float32(cell) * st.size
-		pad := (float32(cell) - size) / 2
+		pad := (float32(cell) - st.size) / 2
 		x := float32(b.Col*cell) + pad
 		y := float32(b.Row*cell) + pad
-		vector.DrawFilledRect(screen, x, y, size, size, st.col, false)
+		vector.DrawFilledRect(screen, x, y, st.size, st.size, st.col, false)
 	}
 }
