@@ -88,12 +88,6 @@ func (m *Manager) Modifiers() (energyMult, waterMult float64) {
 	return energyMult, waterMult
 }
 
-var plantColor = [kindCount]color.RGBA{
-	Battery: {0xff, 0xd7, 0x4c, 0xff},
-	Moss:    {0x4c, 0xa8, 0xff, 0xff},
-	Thorn:   {0xe8, 0xee, 0xf5, 0xff},
-}
-
 var auraColor = [kindCount]color.RGBA{
 	Battery: {0xff, 0xd7, 0x4c, 0xaa},
 	Moss:    {0x4c, 0xa8, 0xff, 0xaa},
@@ -101,11 +95,18 @@ var auraColor = [kindCount]color.RGBA{
 }
 
 func (m *Manager) Draw(screen *ebiten.Image, cell int) {
+	ensureSprites()
 	half := float32(cell) / 2
 	for _, p := range m.plants {
 		cx := float32(p.Col*cell) + half
 		cy := float32(p.Row*cell) + half
 		vector.StrokeCircle(screen, cx, cy, float32(auraRadius*cell), 1.5, auraColor[p.Kind], true)
-		vector.DrawFilledRect(screen, float32(p.Col*cell), float32(p.Row*cell), float32(cell), float32(cell), plantColor[p.Kind], false)
+
+		img := petSprites[p.Kind]
+		op := &ebiten.DrawImageOptions{Filter: ebiten.FilterNearest}
+		b := img.Bounds()
+		op.GeoM.Scale(float64(cell)/float64(b.Dx()), float64(cell)/float64(b.Dy()))
+		op.GeoM.Translate(float64(p.Col*cell), float64(p.Row*cell))
+		screen.DrawImage(img, op)
 	}
 }
