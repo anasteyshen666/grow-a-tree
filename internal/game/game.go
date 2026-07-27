@@ -77,8 +77,8 @@ func (g *Game) startRun() {
 }
 
 const (
-	bloomDiv      = 4   // field is downscaled by this for the blur pass
-	bloomStrength = 0.7 // how strongly the glow is added back
+	bloomDiv      = 4    // field is downscaled by this for the blur pass
+	bloomStrength = 0.45 // how strongly the glow is added back
 )
 
 // applyBloom adds a soft neon glow: downscale the field (a cheap blur), then
