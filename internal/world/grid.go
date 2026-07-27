@@ -138,6 +138,7 @@ func (g *Grid) Cut(col, row int) bool {
 	}
 	g.mushroom[row][col] = false
 	g.addRot(col, row)
+	g.emit(FxCutRot, col, row)
 	g.recomputeConnectivity()
 	return true
 }

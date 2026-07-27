@@ -42,10 +42,21 @@ func (b Button) Draw(dst *ebiten.Image, hovered bool) {
 	drawText(dst, b.Label, b.X+(b.W-tw)/2, b.Y+(b.H-int(buttonSize))/2, buttonSize, btnText)
 }
 
-// DrawTitle draws the green game title centered horizontally at y.
+var colorOutline = color.RGBA{0x00, 0x00, 0x00, 0xff}
+
+var outlineOffsets = [8][2]int{
+	{-3, 0}, {3, 0}, {0, -3}, {0, 3}, {-3, -3}, {3, -3}, {-3, 3}, {3, 3},
+}
+
+// DrawTitle draws the bold green game title with a black outline, centered.
 func DrawTitle(dst *ebiten.Image, screenW, y int) {
 	s := "GROW A TREE"
-	drawText(dst, s, (screenW-textWidth(s, TitleSize))/2, y, TitleSize, colorTitle)
+	f := boldFace(TitleSize)
+	x := (screenW - faceWidth(s, f)) / 2
+	for _, d := range outlineOffsets {
+		drawTextFace(dst, s, x+d[0], y+d[1], f, colorOutline)
+	}
+	drawTextFace(dst, s, x, y, f, colorTitle)
 }
 
 // DrawCenteredLabel draws a label centered horizontally at y.

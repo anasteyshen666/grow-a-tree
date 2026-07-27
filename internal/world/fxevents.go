@@ -11,6 +11,8 @@ const (
 	FxHitCore
 	FxDestroyRoot
 	FxDestroyCore
+	FxCutRot
+	FxEatRot
 )
 
 type FxEvent struct {

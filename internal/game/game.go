@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
+	"growtree/internal/audio"
 	"growtree/internal/enemies"
 	"growtree/internal/fx"
 	"growtree/internal/plants"
@@ -52,6 +53,8 @@ type Game struct {
 }
 
 func New() *Game {
+	audio.Init()
+	audio.StartMusic()
 	g := &Game{screenW: ScreenWidth, screenH: ScreenHeight}
 	g.startRun()
 	g.state = stateMenu
@@ -86,6 +89,7 @@ var (
 	fxHit      = color.RGBA{0xff, 0xff, 0xff, 0xff}
 	fxDestroy  = color.RGBA{0xff, 0x6e, 0x4c, 0xff}
 	fxCoreDead = color.RGBA{0xff, 0x4c, 0x5e, 0xff}
+	fxRotTone  = color.RGBA{0x6b, 0x4a, 0x2f, 0xff}
 )
 
 // applyFx turns the grid's reported events into visual effects.
@@ -94,6 +98,7 @@ func (g *Game) applyFx() {
 		switch e.Kind {
 		case world.FxPlaceRoot:
 			g.fx.Pop(e.Col, e.Row, fxRoot)
+			audio.PlayGrow()
 		case world.FxPlaceWater:
 			g.fx.Pop(e.Col, e.Row, fxWater)
 		case world.FxPlaceMushroom:
@@ -101,6 +106,11 @@ func (g *Game) applyFx() {
 		case world.FxPlaceCore:
 			g.fx.Pop(e.Col, e.Row, fxCore)
 			g.fx.Pop(e.Col+1, e.Row+1, fxCore)
+		case world.FxCutRot:
+			g.fx.Pop(e.Col, e.Row, fxRotTone)
+			audio.PlayRot()
+		case world.FxEatRot:
+			audio.PlayEat()
 		case world.FxHitCore:
 			g.fx.Flash(e.Col, e.Row, fxHit)
 		case world.FxDestroyRoot:
@@ -153,8 +163,10 @@ func (g *Game) Update() error {
 			mx, my := ebiten.CursorPosition()
 			switch {
 			case start.Contains(mx, my):
+				audio.PlayClick()
 				g.startRun()
 			case exit.Contains(mx, my):
+				audio.PlayClick()
 				return ebiten.Termination
 			}
 		}
@@ -170,8 +182,10 @@ func (g *Game) Update() error {
 			mx, my := ebiten.CursorPosition()
 			switch {
 			case cont.Contains(mx, my):
+				audio.PlayClick()
 				g.state = statePlaying
 			case menu.Contains(mx, my):
+				audio.PlayClick()
 				g.state = stateMenu
 			}
 		}

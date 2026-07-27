@@ -44,6 +44,7 @@ func (g *Grid) EatRot(col, row int) {
 	if g.Kind(col, row) == Rot {
 		g.cells[row][col] = Empty
 		g.removeRot(col, row)
+		g.emit(FxEatRot, col, row)
 	}
 }
 
