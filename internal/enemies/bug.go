@@ -22,12 +22,16 @@ const (
 )
 
 type Bug struct {
-	Col, Row int
-	level    int
-	eaten    int     // rot tiles consumed so far
-	poison   float64 // seconds of poison slowdown remaining
-	timer    float64
+	Col, Row   int
+	fcol, frow int // facing direction (0,0 = up), set to the last step
+	level      int
+	eaten      int     // rot tiles consumed so far
+	poison     float64 // seconds of poison slowdown remaining
+	timer      float64
 }
+
+// face records the direction of the step from the bug's current cell to (c,r).
+func (b *Bug) face(c, r int) { b.fcol, b.frow = c-b.Col, r-b.Row }
 
 // update advances one bug and reports whether it died. Rot bait is the only
 // thing that kills a bug: a level-N bug must eat N rot tiles.
@@ -67,6 +71,7 @@ func (b *Bug) update(dt float64, f Field) (dead bool) {
 	if b.timer >= move {
 		if c, r, ok := f.NextRotStep(b.Col, b.Row); ok {
 			b.timer = 0
+			b.face(c, r)
 			b.Col, b.Row = c, r
 			return false
 		}
@@ -85,6 +90,7 @@ func (b *Bug) update(dt float64, f Field) (dead bool) {
 	if b.timer >= move {
 		b.timer = 0
 		if c, r, ok := f.NextStep(b.Col, b.Row); ok {
+			b.face(c, r)
 			b.Col, b.Row = c, r
 		}
 	}

@@ -14,11 +14,11 @@ PNG textures, embedded into the binary via `//go:embed` (see `assets.go`) so the
 | `gnil.png`        | rot (fades out as it ages) |
 | `water.png`       | water source (fades as it depletes) |
 | `spora.png`       | mushroom spore |
+| `fly1.png`…`fly5.png` | the 5 bug levels (20/24/28/32/36 px), drawn facing up, rotated toward movement |
 
 ## Still needed (currently drawn as colored squares)
 
-- `bug_1.png` … `bug_5.png` — the 5 bug levels (draw at 24×24; sizing/centering handled in code)
-- companion plants — Battery / Moss / Thorn
+- companion plants — Battery / Moss / Thorn (24×24 each)
 - a "dead root" look for roots cut off from the Core (optional; now a dim gray square)
 
 Any square, transparent-background PNG works. To keep sprites crisp on larger

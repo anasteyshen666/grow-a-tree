@@ -1,8 +1,9 @@
 package enemies
 
 import (
+	"math"
+
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 const maxBugs = 200
@@ -36,14 +37,34 @@ func (m *Manager) Update(dt float64, f Field) {
 	m.bugs = kept
 }
 
-// Draw renders each bug as a square of its level's pixel size, centered on the
-// cell (bigger levels overflow the cell).
+// Draw renders each bug's texture, centered on its cell and rotated so it faces
+// the direction it is moving (the sprites are drawn facing up).
 func (m *Manager) Draw(screen *ebiten.Image, cell int) {
+	ensureSprites()
 	for _, b := range m.bugs {
-		st := &levels[b.level]
-		pad := (float32(cell) - st.size) / 2
-		x := float32(b.Col*cell) + pad
-		y := float32(b.Row*cell) + pad
-		vector.DrawFilledRect(screen, x, y, st.size, st.size, st.col, false)
+		img := bugSprites[b.level]
+		w := float64(img.Bounds().Dx())
+		op := &ebiten.DrawImageOptions{Filter: ebiten.FilterNearest}
+		op.GeoM.Translate(-w/2, -w/2)
+		op.GeoM.Rotate(facingAngle(b.fcol, b.frow))
+		op.GeoM.Translate(w/2, w/2)
+		pad := (float64(cell) - w) / 2
+		op.GeoM.Translate(float64(b.Col*cell)+pad, float64(b.Row*cell)+pad)
+		screen.DrawImage(img, op)
+	}
+}
+
+// facingAngle maps a step direction to a clockwise rotation for an up-facing
+// sprite.
+func facingAngle(dc, dr int) float64 {
+	switch {
+	case dc == 1:
+		return math.Pi / 2
+	case dc == -1:
+		return -math.Pi / 2
+	case dr == 1:
+		return math.Pi
+	default:
+		return 0
 	}
 }
