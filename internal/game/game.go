@@ -260,6 +260,7 @@ func (g *Game) drawMenu(screen *ebiten.Image) {
 	mx, my := ebiten.CursorPosition()
 	start.Draw(screen, start.Contains(mx, my))
 	exit.Draw(screen, exit.Contains(mx, my))
+	ui.DrawVersion(screen, g.screenW, g.screenH)
 }
 
 func (g *Game) drawPause(screen *ebiten.Image) {

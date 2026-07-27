@@ -58,5 +58,10 @@ func DrawVeil(dst *ebiten.Image, w, h int) {
 	vector.DrawFilledRect(dst, 0, 0, float32(w), float32(h), veilColor, false)
 }
 
+// DrawVersion prints the build version in the bottom-left corner.
+func DrawVersion(dst *ebiten.Image, w, h int) {
+	drawText(dst, "beta v1.0", 14, h-28, bodySize, colorLabel)
+}
+
 // LabelColor exposes the neutral label color for callers.
 var LabelColor color.Color = colorLabel
