@@ -75,7 +75,7 @@ the stages progress.
 - [x] Stage 11 — rot as bait
 - [x] Stage 12 — companion plants
 - [x] Stage 13 — multiple Cores
-- [ ] Stage 14 — seasons
+- [x] Stage 14 — seasons
 - [ ] Stage 15 — full UI
 - [ ] Stage 16 — high-score save
 - [ ] Stage 17 — balance and polish
