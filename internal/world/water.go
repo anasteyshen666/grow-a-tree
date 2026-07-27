@@ -61,7 +61,7 @@ func (g *Grid) MineWater(dt float64) float64 {
 	kept := g.sources[:0]
 	for _, s := range g.sources {
 		if g.touchesNetwork(s.col, s.row) {
-			take := mineRatePerSec * dt
+			take := mineRatePerSec * dt * g.season.SourceDrainMul()
 			if take > s.amount {
 				take = s.amount
 			}

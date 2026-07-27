@@ -1,5 +1,7 @@
 package world
 
+import "growtree/internal/season"
+
 const (
 	maxSpores          = 4
 	sporeSpawnInterval = 7.0 // seconds between spore appearances
@@ -11,6 +13,7 @@ const (
 // over time and infect any root they end up next to, turning it into a mushroom
 // root (GDD §4).
 func (g *Grid) Update(dt float64, wave int) {
+	g.season = season.Of(wave)
 	g.decayRot(dt)
 	if wave >= sporeStartWave {
 		g.sporeTimer += dt
@@ -23,7 +26,7 @@ func (g *Grid) Update(dt float64, wave int) {
 }
 
 func (g *Grid) spawnSpore() {
-	if len(g.spores) >= maxSpores {
+	if len(g.spores) >= g.season.SporeCap(maxSpores) {
 		return
 	}
 	for try := 0; try < 40; try++ {

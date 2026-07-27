@@ -27,7 +27,8 @@ var (
 	sprSpore    *ebiten.Image
 
 	spritesReady bool
-	terrainBG    *ebiten.Image // cached dirt background, built once
+	terrainBG    *ebiten.Image // cached dirt background, rebuilt when the tint changes
+	terrainTint  [3]float64
 )
 
 func ensureSprites() {
@@ -85,17 +86,22 @@ func drawTileDim(screen, img *ebiten.Image, col, row int, f float32) {
 	screen.DrawImage(img, op)
 }
 
-// drawTerrain blits the cached, darkened dirt background covering the field.
-func drawTerrain(screen *ebiten.Image) {
-	if terrainBG == nil {
-		terrainBG = ebiten.NewImage(Cols*CellSize, Rows*CellSize)
+// drawTerrain blits the darkened, season-tinted dirt background covering the
+// field. The cache is rebuilt only when the tint changes.
+func drawTerrain(screen *ebiten.Image, tr, tg, tb float64) {
+	if terrainBG == nil || terrainTint != [3]float64{tr, tg, tb} {
+		if terrainBG == nil {
+			terrainBG = ebiten.NewImage(Cols*CellSize, Rows*CellSize)
+		}
+		terrainBG.Clear()
 		for row := 0; row < Rows; row++ {
 			for col := 0; col < Cols; col++ {
 				op := tileOp(sprDirt, col, row)
-				op.ColorScale.Scale(dirtDim, dirtDim, dirtDim, 1)
+				op.ColorScale.Scale(float32(dirtDim*tr), float32(dirtDim*tg), float32(dirtDim*tb), 1)
 				terrainBG.DrawImage(sprDirt, op)
 			}
 		}
+		terrainTint = [3]float64{tr, tg, tb}
 	}
 	screen.DrawImage(terrainBG, nil)
 }

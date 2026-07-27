@@ -11,21 +11,18 @@ import (
 	"growtree/internal/fx"
 	"growtree/internal/plants"
 	"growtree/internal/resources"
+	"growtree/internal/season"
 	"growtree/internal/ui"
 	"growtree/internal/waves"
 	"growtree/internal/world"
 )
 
 const (
-	fieldPx = world.Cols * world.CellSize // square play field (720)
+	fieldPx = world.Cols * world.CellSize // square play field, in logical pixels
 
-	// The logical canvas is 16:9; the square field sits centered with a HUD
-	// panel on each side. Fullscreen scales this whole canvas.
+	// Initial windowed size (fullscreen overrides this via Layout).
 	ScreenWidth  = 1280
 	ScreenHeight = 720
-
-	fieldOX = (ScreenWidth - fieldPx) / 2
-	fieldOY = (ScreenHeight - fieldPx) / 2
 
 	secondsPerTick = 1.0 / 60.0
 )
@@ -40,18 +37,31 @@ type Game struct {
 	plants *plants.Manager
 	fx     *fx.Manager
 	field  *ebiten.Image
-	over   bool
+
+	screenW, screenH int
+	over             bool
 }
 
 func New() *Game {
 	return &Game{
-		grid:   world.NewGrid(),
-		res:    resources.New(),
-		bugs:   enemies.NewManager(),
-		waves:  waves.NewManager(),
-		plants: plants.NewManager(),
-		fx:     fx.New(world.CellSize),
+		grid:    world.NewGrid(),
+		res:     resources.New(),
+		bugs:    enemies.NewManager(),
+		waves:   waves.NewManager(),
+		plants:  plants.NewManager(),
+		fx:      fx.New(world.CellSize),
+		screenW: ScreenWidth,
+		screenH: ScreenHeight,
 	}
+}
+
+// fieldMetrics places the square field: it fills the screen height and is
+// centered horizontally, leaving a HUD panel on each side.
+func (g *Game) fieldMetrics() (scale, ox, oy float64) {
+	scale = float64(g.screenH) / fieldPx
+	draw := float64(g.screenH)
+	ox = (float64(g.screenW) - draw) / 2
+	return scale, ox, 0
 }
 
 var (
@@ -101,12 +111,13 @@ var plantKeys = [...]struct {
 // play field (over a side panel).
 func (g *Game) fieldCell() (col, row int, ok bool) {
 	cx, cy := ebiten.CursorPosition()
-	fx, fy := cx-fieldOX, cy-fieldOY
+	scale, ox, oy := g.fieldMetrics()
+	fx := (float64(cx) - ox) / scale
+	fy := (float64(cy) - oy) / scale
 	if fx < 0 || fy < 0 || fx >= fieldPx || fy >= fieldPx {
 		return 0, 0, false
 	}
-	col, row = world.CellAt(fx, fy)
-	return col, row, true
+	return int(fx) / world.CellSize, int(fy) / world.CellSize, true
 }
 
 func (g *Game) Update() error {
@@ -178,21 +189,29 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.bugs.Draw(g.field, world.CellSize)
 	g.fx.Draw(g.field)
 
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(fieldOX, fieldOY)
+	scale, ox, oy := g.fieldMetrics()
+	op := &ebiten.DrawImageOptions{Filter: ebiten.FilterNearest}
+	op.GeoM.Scale(scale, scale)
+	op.GeoM.Translate(ox, oy)
 	screen.DrawImage(g.field, op)
 
-	rightX := fieldOX + fieldPx + 16
-	ui.DrawResources(screen, g.res, 16, 40)
-	ui.DrawStatus(screen, g.grid.CoreCount(), g.grid.CoreHP(), 16, 220)
-	ui.DrawControls(screen, 16, ScreenHeight-140)
-	ui.DrawWaveInfo(screen, rightX, 40, g.waves.Number(), g.waves.InPrep(), g.waves.PrepRemaining())
+	leftX := 16
+	rightEdge := g.screenW - 24 // right panel hugs the right screen edge
+	ui.DrawResources(screen, g.res, leftX, 40)
+	ui.DrawStatus(screen, g.grid.CoreCount(), g.grid.CoreHP(), leftX, 220)
+	ui.DrawControls(screen, leftX, g.screenH-140)
+	shownWave := g.waves.Number()
+	if g.waves.InPrep() {
+		shownWave++
+	}
+	ui.DrawWaveInfo(screen, rightEdge, 40, g.waves.Number(), g.waves.InPrep(), g.waves.PrepRemaining(), season.Of(shownWave).Name())
 
 	if g.over {
-		ui.DrawGameOver(screen, ScreenWidth, ScreenHeight, g.waves.Number())
+		ui.DrawGameOver(screen, g.screenW, g.screenH, g.waves.Number())
 	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return ScreenWidth, ScreenHeight
+	g.screenW, g.screenH = outsideWidth, outsideHeight
+	return outsideWidth, outsideHeight
 }

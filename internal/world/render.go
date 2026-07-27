@@ -19,7 +19,8 @@ var gridLines *ebiten.Image
 
 func (g *Grid) Draw(screen *ebiten.Image) {
 	ensureSprites()
-	drawTerrain(screen)
+	tr, tg, tb := g.season.DirtTint()
+	drawTerrain(screen, tr, tg, tb)
 	drawLines(screen)
 
 	for row := 0; row < Rows; row++ {

@@ -1,5 +1,7 @@
 package world
 
+import "growtree/internal/season"
+
 // CellKind is what occupies a single grid cell. More kinds (Rot, Water, ...)
 // arrive in later stages.
 type CellKind uint8
@@ -37,6 +39,7 @@ type Grid struct {
 	spores     [][2]int
 	sporeTimer float64
 	fxEvents   []FxEvent
+	season     season.Season
 }
 
 func NewGrid() *Grid {

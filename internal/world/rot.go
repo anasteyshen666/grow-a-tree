@@ -33,7 +33,7 @@ func (g *Grid) decayRot(dt float64) {
 		if g.cells[rt.row][rt.col] != Rot {
 			continue // consumed by a bug or reclaimed by a root
 		}
-		rt.ttl -= dt
+		rt.ttl -= dt / g.season.RotLifetimeMul()
 		if rt.ttl <= 0 {
 			g.cells[rt.row][rt.col] = Empty
 			continue

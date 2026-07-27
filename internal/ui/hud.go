@@ -81,19 +81,24 @@ func DrawStatus(dst *ebiten.Image, cores, hp int, x, y int) {
 	drawText(dst, fmt.Sprintf("HP     %d", hp), x, y+24, bodySize, colorLabel)
 }
 
-// DrawWaveInfo shows the current wave and its status in the right panel.
-func DrawWaveInfo(dst *ebiten.Image, x, y, wave int, inPrep bool, prep float64) {
-	drawText(dst, "WAVE", x, y, bodySize, colorLabel)
+// DrawWaveInfo shows the current wave, its status, and the season, right-aligned
+// to rightEdge so it always sits inside the right panel.
+func DrawWaveInfo(dst *ebiten.Image, rightEdge, y, wave int, inPrep bool, prep float64, seasonName string) {
+	line := func(s string, yy int, size float64, clr color.Color) {
+		drawText(dst, s, rightEdge-textWidth(s, size), yy, size, clr)
+	}
 	shown := wave
 	if inPrep {
 		shown = wave + 1
 	}
-	drawText(dst, fmt.Sprintf("%d", shown), x, y+24, 40, colorSeeds)
+	line("WAVE", y, bodySize, colorLabel)
+	line(fmt.Sprintf("%d", shown), y+24, 40, colorSeeds)
 	if inPrep {
-		drawText(dst, fmt.Sprintf("NEXT IN %ds", int(prep+0.5)), x, y+76, bodySize, colorLabel)
+		line(fmt.Sprintf("NEXT IN %ds", int(prep+0.5)), y+76, bodySize, colorLabel)
 	} else {
-		drawText(dst, "ATTACKING", x, y+76, bodySize, colorDanger)
+		line("ATTACKING", y+76, bodySize, colorDanger)
 	}
+	line(seasonName, y+108, bodySize, colorLabel)
 }
 
 // DrawControls lists the input hints along the bottom of the left panel.
