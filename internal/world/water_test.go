@@ -17,13 +17,13 @@ func TestMineWaterNeedsLiveNetwork(t *testing.T) {
 	sc, sr := col0-2, row0 // one gap away from the Core
 
 	dry := gridWithSource(sc, sr)
-	if got := dry.MineWater(1); got != 0 {
+	if got := dry.MineWater(1, nil); got != 0 {
 		t.Fatalf("mined water with no adjacent network: %v", got)
 	}
 
 	tapped := gridWithSource(sc, sr)
 	tapped.Grow(col0-1, row0) // connected root now sits beside the source
-	if got := tapped.MineWater(1); got <= 0 {
+	if got := tapped.MineWater(1, nil); got <= 0 {
 		t.Fatal("no water mined despite an adjacent connected root")
 	}
 }
@@ -43,7 +43,7 @@ func TestNewUnconnectedCoreMinesAdjacentWater(t *testing.T) {
 	g.cells[sr][sc] = Water
 	g.sources = append(g.sources, &waterSource{col: sc, row: sr, amount: 100, max: 100})
 
-	if got := g.MineWater(1); got <= 0 {
+	if got := g.MineWater(1, nil); got <= 0 {
 		t.Fatal("water not mined from a source beside a new, unconnected core")
 	}
 }
@@ -61,7 +61,7 @@ func TestDepletedSourceIsReplaced(t *testing.T) {
 	old := &waterSource{col: sc, row: sr, amount: 1}
 	g.sources = append(g.sources, old)
 
-	g.MineWater(1) // rate outpaces the tiny amount, so it empties and respawns
+	g.MineWater(1, nil) // rate outpaces the tiny amount, so it empties and respawns
 	if len(g.sources) != baseSourceCount {
 		t.Fatalf("map should refill to %d sources, got %d", baseSourceCount, len(g.sources))
 	}

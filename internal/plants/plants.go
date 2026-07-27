@@ -52,6 +52,24 @@ func (m *Manager) Add(col, row int, k Kind) {
 
 func (m *Manager) Count() int { return len(m.plants) }
 
+// NearThorn reports whether a Winter Thornbush sits within its aura radius of
+// the cell — it shields nearby water sources from the winter drain penalty.
+func (m *Manager) NearThorn(col, row int) bool {
+	for _, p := range m.plants {
+		if p.Kind == Thorn && abs(col-p.Col) <= auraRadius && abs(row-p.Row) <= auraRadius {
+			return true
+		}
+	}
+	return false
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 // Modifiers aggregates the plant auras into economy multipliers: energy regen
 // speed and water cost of that regen.
 func (m *Manager) Modifiers() (energyMult, waterMult float64) {

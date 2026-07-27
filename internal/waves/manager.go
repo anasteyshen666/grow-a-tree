@@ -5,7 +5,7 @@
 package waves
 
 const (
-	prepTime     = 45.0 // seconds of calm before a wave
+	prepTime     = 30.0 // seconds of calm before a wave
 	spawnCadence = 0.6  // seconds between bug releases within a wave
 	baseWaveSize = 5
 )

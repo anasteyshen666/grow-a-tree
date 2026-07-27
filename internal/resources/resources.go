@@ -17,7 +17,6 @@ func (p *Pool) add(v float64) {
 
 const (
 	RootEnergyCost = 8.0
-	RootRefund     = RootEnergyCost * 0.5
 
 	// Energy regenerates slowly; each point still drains the same water per
 	// second as before (regen*waterPerEnergy is unchanged at 3/sec).
@@ -25,6 +24,16 @@ const (
 	waterPerEnergy    = 1.0
 	seedsRegenPerSec  = 1.0
 )
+
+// RefundFor is the energy returned when cutting a root: 20% at the start, rising
+// 10% every 10 waves (capped at 90%), rewarding late-game rot play.
+func RefundFor(wave int) float64 {
+	frac := 0.2 + 0.1*float64(wave/10)
+	if frac > 0.9 {
+		frac = 0.9
+	}
+	return RootEnergyCost * frac
+}
 
 type Resources struct {
 	Energy Pool

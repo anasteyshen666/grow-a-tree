@@ -13,7 +13,7 @@ type waterSource struct {
 const (
 	baseSourceCount = 5
 	SourceMaxAmount = 120.0
-	mineRatePerSec  = 8.0
+	mineRatePerSec  = 5.0 // water mined per second per tapped source
 )
 
 // sourceTarget is how many sources the map should hold: the base count plus one
@@ -54,14 +54,18 @@ func (g *Grid) spawnSources() {
 
 // MineWater draws water from every source touched by the live network, depletes
 // those sources, removes any that ran dry, and returns the total mined this tick.
-// Each source that dries up is replaced by a fresh one elsewhere, so the map
-// always holds sourceCount puddles.
-func (g *Grid) MineWater(dt float64) float64 {
+// Each source that dries up is replaced by a fresh one elsewhere. protect (may
+// be nil) reports sources shielded by a Thornbush from the winter drain penalty.
+func (g *Grid) MineWater(dt float64, protect func(col, row int) bool) float64 {
 	total := 0.0
 	kept := g.sources[:0]
 	for _, s := range g.sources {
 		if g.touchesNetwork(s.col, s.row) {
-			take := mineRatePerSec * dt * g.season.SourceDrainMul()
+			mul := g.season.SourceDrainMul()
+			if mul > 1.0 && protect != nil && protect(s.col, s.row) {
+				mul = 1.0 // Thornbush cancels the winter penalty
+			}
+			take := mineRatePerSec * dt * mul
 			if take > s.amount {
 				take = s.amount
 			}

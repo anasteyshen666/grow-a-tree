@@ -2,6 +2,7 @@ package ui
 
 import (
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -48,15 +49,26 @@ var outlineOffsets = [8][2]int{
 	{-3, 0}, {3, 0}, {0, -3}, {0, 3}, {-3, -3}, {3, -3}, {-3, 3}, {3, 3},
 }
 
-// DrawTitle draws the bold green game title with a black outline, centered.
+var titlePhase float64
+
+// DrawTitle draws the bold green game title with a black outline, centered, with
+// a gentle brightness pulse.
 func DrawTitle(dst *ebiten.Image, screenW, y int) {
+	titlePhase += 0.05
+	pulse := 0.8 + 0.2*math.Sin(titlePhase)
+	fill := color.RGBA{
+		uint8(float64(colorTitle.R) * pulse),
+		uint8(float64(colorTitle.G) * pulse),
+		uint8(float64(colorTitle.B) * pulse),
+		0xff,
+	}
 	s := "GROW A TREE"
 	f := boldFace(TitleSize)
 	x := (screenW - faceWidth(s, f)) / 2
 	for _, d := range outlineOffsets {
 		drawTextFace(dst, s, x+d[0], y+d[1], f, colorOutline)
 	}
-	drawTextFace(dst, s, x, y, f, colorTitle)
+	drawTextFace(dst, s, x, y, f, fill)
 }
 
 // DrawCenteredLabel draws a label centered horizontally at y.

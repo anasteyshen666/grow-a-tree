@@ -78,7 +78,7 @@ func (g *Game) startRun() {
 
 const (
 	bloomDiv      = 4    // field is downscaled by this for the blur pass
-	bloomStrength = 0.45 // how strongly the glow is added back
+	bloomStrength = 0.35 // how strongly the glow is added back
 )
 
 // applyBloom adds a soft neon glow: downscale the field (a cheap blur), then
@@ -236,7 +236,7 @@ func (g *Game) Update() error {
 func (g *Game) updatePlaying() {
 	g.grid.Update(secondsPerTick, g.waves.Number())
 	g.res.SetCoreLinks(g.grid.CoreMerges())
-	g.res.AddWater(g.grid.MineWater(secondsPerTick))
+	g.res.AddWater(g.grid.MineWater(secondsPerTick, g.plants.NearThorn))
 	energyMult, waterMult := g.plants.Modifiers()
 	upkeep := float64(g.grid.CoreCount()-1) * resources.WaterUpkeepPerCore
 	g.res.Update(secondsPerTick, energyMult, waterMult, upkeep)
@@ -265,7 +265,7 @@ func (g *Game) updatePlaying() {
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		if col, row, ok := g.fieldCell(); ok && g.grid.Cut(col, row) {
-			g.res.AddEnergy(resources.RootRefund)
+			g.res.AddEnergy(resources.RefundFor(g.waves.Number()))
 		}
 	}
 	for _, pk := range plantKeys {
