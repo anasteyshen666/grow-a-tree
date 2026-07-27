@@ -41,7 +41,20 @@ func TestNextWaveWaitsForBugsCleared(t *testing.T) {
 }
 
 func TestWaveSizeGrows(t *testing.T) {
-	if waveSize(2) <= waveSize(1) {
-		t.Fatal("later waves should be larger")
+	if waveSize(1) != waveSize(2) {
+		t.Fatal("count should be constant within a 2-wave step")
+	}
+	if waveSize(3) <= waveSize(1) {
+		t.Fatal("count should step up every 2 waves")
+	}
+	// same step (waves 1-2 vs 11-12), later decade should have more bugs
+	if waveSize(11) <= waveSize(1) {
+		t.Fatal("each decade should have more bugs at the same step")
+	}
+	// each decade should also grow faster than the last
+	d0 := waveSize(3) - waveSize(1)
+	d1 := waveSize(13) - waveSize(11)
+	if d1 <= d0 {
+		t.Fatal("later decades should ramp up faster")
 	}
 }

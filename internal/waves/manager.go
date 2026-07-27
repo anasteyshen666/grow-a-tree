@@ -7,7 +7,7 @@ package waves
 const (
 	prepTime     = 30.0 // seconds of calm before a wave
 	spawnCadence = 0.6  // seconds between bug releases within a wave
-	baseWaveSize = 5
+	baseWaveSize = 3
 )
 
 type phase int
@@ -29,8 +29,17 @@ func NewManager() *Manager {
 	return &Manager{phase: prep, timer: prepTime}
 }
 
-// waveSize is how many bugs wave n releases (grows by one each wave).
-func waveSize(n int) int { return baseWaveSize + (n - 1) }
+// waveSize is how many bugs a wave releases. The count steps up every 2 waves
+// (in step with the bug-level unlocks), and each 10-wave decade grows faster
+// than the last, so later decades have more bugs per 2-wave step.
+func waveSize(n int) int {
+	if n < 1 {
+		n = 1
+	}
+	decade := (n - 1) / 10
+	step := ((n - 1) % 10) / 2
+	return baseWaveSize + (decade+1)*(step+1)*2
+}
 
 // Update advances the wave clock and returns how many bugs to spawn this tick.
 // aliveBugs is the current number of live bugs; the prep for the next wave only
