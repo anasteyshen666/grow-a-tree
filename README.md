@@ -24,6 +24,7 @@ go build -o bin/growtree.exe ./cmd/game
 - **RMB** — cut your own root; refunds 50% of the energy and leaves rot behind.
 - **1 / 2 / 3** — plant a companion near the Core (80 seeds): Battery / Moss / Thorn.
 - **M** — mature a new Core (100 seeds); link cores with roots to raise the water/energy caps. Each extra Core also drains water faster and spawns one more source.
+- **Esc** — pause (Continue / Menu).
 - **R** — restart after game over.
 
 The game runs fullscreen: the square play field sits centered with a HUD panel
@@ -76,7 +77,7 @@ the stages progress.
 - [x] Stage 12 — companion plants
 - [x] Stage 13 — multiple Cores
 - [x] Stage 14 — seasons
-- [ ] Stage 15 — full UI
+- [x] Stage 15 — main menu (Start/Exit) and pause (Continue/Menu)
 - [ ] Stage 16 — high-score save
 - [ ] Stage 17 — balance and polish
 - [ ] Stage 18 — texture integration

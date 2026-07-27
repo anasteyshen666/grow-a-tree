@@ -86,6 +86,26 @@ func drawTileDim(screen, img *ebiten.Image, col, row int, f float32) {
 	screen.DrawImage(img, op)
 }
 
+var menuBG *ebiten.Image
+
+// DrawDirtBackground tiles the darkened dirt across dst (used by menus). Cached
+// per destination size.
+func DrawDirtBackground(dst *ebiten.Image) {
+	ensureSprites()
+	w, h := dst.Bounds().Dx(), dst.Bounds().Dy()
+	if menuBG == nil || menuBG.Bounds().Dx() != w || menuBG.Bounds().Dy() != h {
+		menuBG = ebiten.NewImage(w, h)
+		for y := 0; y < h; y += CellSize {
+			for x := 0; x < w; x += CellSize {
+				op := tileOp(sprDirt, x/CellSize, y/CellSize)
+				op.ColorScale.Scale(dirtDim, dirtDim, dirtDim, 1)
+				menuBG.DrawImage(sprDirt, op)
+			}
+		}
+	}
+	dst.DrawImage(menuBG, nil)
+}
+
 // drawTerrain blits the darkened, season-tinted dirt background covering the
 // field. The cache is rebuilt only when the tint changes.
 func drawTerrain(screen *ebiten.Image, tr, tg, tb float64) {

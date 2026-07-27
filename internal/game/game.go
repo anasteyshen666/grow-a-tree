@@ -29,6 +29,15 @@ const (
 
 var panelColor = color.RGBA{R: 0x07, G: 0x09, B: 0x0d, A: 0xff}
 
+type state int
+
+const (
+	stateMenu state = iota
+	statePlaying
+	statePaused
+	stateOver
+)
+
 type Game struct {
 	grid   *world.Grid
 	res    *resources.Resources
@@ -39,20 +48,25 @@ type Game struct {
 	field  *ebiten.Image
 
 	screenW, screenH int
-	over             bool
+	state            state
 }
 
 func New() *Game {
-	return &Game{
-		grid:    world.NewGrid(),
-		res:     resources.New(),
-		bugs:    enemies.NewManager(),
-		waves:   waves.NewManager(),
-		plants:  plants.NewManager(),
-		fx:      fx.New(world.CellSize),
-		screenW: ScreenWidth,
-		screenH: ScreenHeight,
-	}
+	g := &Game{screenW: ScreenWidth, screenH: ScreenHeight}
+	g.startRun()
+	g.state = stateMenu
+	return g
+}
+
+// startRun (re)initializes a fresh playing session.
+func (g *Game) startRun() {
+	g.grid = world.NewGrid()
+	g.res = resources.New()
+	g.bugs = enemies.NewManager()
+	g.waves = waves.NewManager()
+	g.plants = plants.NewManager()
+	g.fx = fx.New(world.CellSize)
+	g.state = statePlaying
 }
 
 // fieldMetrics places the square field: it fills the screen height and is
@@ -120,14 +134,66 @@ func (g *Game) fieldCell() (col, row int, ok bool) {
 	return int(fx) / world.CellSize, int(fy) / world.CellSize, true
 }
 
+// twoButtons lays out two stacked, centered buttons with the given labels.
+func (g *Game) twoButtons(a, b string) (ui.Button, ui.Button) {
+	w, h := 260, 56
+	cx, cy := g.screenW/2, g.screenH/2
+	top := ui.Button{X: cx - w/2, Y: cy - 8, W: w, H: h, Label: a}
+	bot := ui.Button{X: cx - w/2, Y: cy + 64, W: w, H: h, Label: b}
+	return top, bot
+}
+
+func clicked() bool { return inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) }
+
 func (g *Game) Update() error {
-	if g.over {
+	switch g.state {
+	case stateMenu:
+		start, exit := g.twoButtons("START", "EXIT")
+		if clicked() {
+			mx, my := ebiten.CursorPosition()
+			switch {
+			case start.Contains(mx, my):
+				g.startRun()
+			case exit.Contains(mx, my):
+				return ebiten.Termination
+			}
+		}
+		return nil
+
+	case statePaused:
+		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+			g.state = statePlaying
+			return nil
+		}
+		cont, menu := g.twoButtons("CONTINUE", "MENU")
+		if clicked() {
+			mx, my := ebiten.CursorPosition()
+			switch {
+			case cont.Contains(mx, my):
+				g.state = statePlaying
+			case menu.Contains(mx, my):
+				g.state = stateMenu
+			}
+		}
+		return nil
+
+	case stateOver:
 		if inpututil.IsKeyJustPressed(ebiten.KeyR) {
-			*g = *New()
+			g.startRun()
 		}
 		return nil
 	}
 
+	// statePlaying
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		g.state = statePaused
+		return nil
+	}
+	g.updatePlaying()
+	return nil
+}
+
+func (g *Game) updatePlaying() {
 	g.grid.Update(secondsPerTick, g.waves.Number())
 	g.res.SetCoreLinks(g.grid.CoreMerges())
 	g.res.AddWater(g.grid.MineWater(secondsPerTick))
@@ -144,8 +210,8 @@ func (g *Game) Update() error {
 	g.fx.Update(secondsPerTick)
 
 	if g.grid.CoreCount() == 0 {
-		g.over = true
-		return nil
+		g.state = stateOver
+		return
 	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -171,10 +237,41 @@ func (g *Game) Update() error {
 			g.res.TrySpendSeeds(world.MatureSeedCost)
 		}
 	}
-	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	if g.state == stateMenu {
+		g.drawMenu(screen)
+		return
+	}
+	g.drawPlaying(screen)
+	switch g.state {
+	case statePaused:
+		g.drawPause(screen)
+	case stateOver:
+		ui.DrawGameOver(screen, g.screenW, g.screenH, g.waves.Number())
+	}
+}
+
+func (g *Game) drawMenu(screen *ebiten.Image) {
+	world.DrawDirtBackground(screen)
+	ui.DrawTitle(screen, g.screenW, g.screenH/2-150)
+	start, exit := g.twoButtons("START", "EXIT")
+	mx, my := ebiten.CursorPosition()
+	start.Draw(screen, start.Contains(mx, my))
+	exit.Draw(screen, exit.Contains(mx, my))
+}
+
+func (g *Game) drawPause(screen *ebiten.Image) {
+	ui.DrawVeil(screen, g.screenW, g.screenH)
+	ui.DrawCenteredLabel(screen, g.screenW, g.screenH/2-150, "PAUSED", ui.TitleSize, ui.LabelColor)
+	cont, menu := g.twoButtons("CONTINUE", "MENU")
+	mx, my := ebiten.CursorPosition()
+	cont.Draw(screen, cont.Contains(mx, my))
+	menu.Draw(screen, menu.Contains(mx, my))
+}
+
+func (g *Game) drawPlaying(screen *ebiten.Image) {
 	if g.field == nil {
 		g.field = ebiten.NewImage(fieldPx, fieldPx)
 	}
@@ -183,8 +280,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.field.Clear()
 	g.grid.Draw(g.field)
 	g.plants.Draw(g.field, world.CellSize)
-	if col, row, ok := g.fieldCell(); ok {
-		g.grid.DrawHover(g.field, col, row)
+	if g.state == statePlaying {
+		if col, row, ok := g.fieldCell(); ok {
+			g.grid.DrawHover(g.field, col, row)
+		}
 	}
 	g.bugs.Draw(g.field, world.CellSize)
 	g.fx.Draw(g.field)
@@ -196,7 +295,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(g.field, op)
 
 	leftX := 16
-	rightEdge := g.screenW - 24 // right panel hugs the right screen edge
+	rightEdge := g.screenW - 24
 	ui.DrawResources(screen, g.res, leftX, 40)
 	ui.DrawStatus(screen, g.grid.CoreCount(), g.grid.CoreHP(), leftX, 220)
 	ui.DrawControls(screen, leftX, g.screenH-140)
@@ -205,10 +304,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		shownWave++
 	}
 	ui.DrawWaveInfo(screen, rightEdge, 40, g.waves.Number(), g.waves.InPrep(), g.waves.PrepRemaining(), season.Of(shownWave).Name())
-
-	if g.over {
-		ui.DrawGameOver(screen, g.screenW, g.screenH, g.waves.Number())
-	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
