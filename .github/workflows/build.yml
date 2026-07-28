@@ -1,0 +1,63 @@
+name: build
+
+# Build self-contained native binaries for Windows, Linux and macOS on their
+# own runners (Ebiten needs cgo/native libs, so it can't be cross-compiled).
+# Run manually from the Actions tab, or push a tag like v1.0.
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            out: growtree-windows-amd64.exe
+            ldflags: "-H windowsgui -s -w"
+          - os: ubuntu-latest
+            out: growtree-linux-amd64
+            ldflags: "-s -w"
+          - os: macos-latest
+            out: growtree-macos-arm64
+            ldflags: "-s -w"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Linux build deps
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev xorg-dev libasound2-dev
+
+      - name: Build
+        run: go build -ldflags "${{ matrix.ldflags }}" -o "dist/${{ matrix.out }}" ./cmd/game
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.out }}
+          path: dist/${{ matrix.out }}
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build WASM
+        run: |
+          mkdir -p dist/web
+          GOOS=js GOARCH=wasm go build -o dist/web/growtree.wasm ./cmd/game
+          cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" dist/web/
+          cp web/index.html dist/web/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: growtree-web
+          path: dist/web
