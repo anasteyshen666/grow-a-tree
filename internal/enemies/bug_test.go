@@ -11,7 +11,7 @@ type mockField struct {
 	rotEaten int
 }
 
-func (f *mockField) RandomEdgeSpawn() (int, int, bool)  { return 0, 0, true }
+func (f *mockField) EdgeSpawn(int) (int, int, bool)     { return 0, 0, true }
 func (f *mockField) NextStep(c, r int) (int, int, bool) { return c + 1, r, true }
 func (f *mockField) NextRotStep(c, r int) (int, int, bool) {
 	if f.rotStep {

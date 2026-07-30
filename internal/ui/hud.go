@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -73,6 +74,34 @@ func drawResource(dst *ebiten.Image, x, y int, label string, p resources.Pool, f
 		border = colorDanger
 	}
 	drawBar(dst, x, y+22, frac, fill, border)
+}
+
+var telePhase float64
+
+// DrawTelegraph draws a pulsing chevron at the edge the next swarm will enter
+// from (drawn on the field, in field pixels). side: 0 top, 1 bottom, 2 left, 3 right.
+func DrawTelegraph(dst *ebiten.Image, side, fieldPx int) {
+	telePhase += 0.1
+	p := 0.5 + 0.5*math.Sin(telePhase)
+	c := color.RGBA{0xff, 0x6e, 0x4c, uint8(110 + 120*p)}
+	const m, s = 26.0, 22.0
+	mid := float64(fieldPx) / 2
+	end := float64(fieldPx) - m
+
+	arm := func(x1, y1, tx, ty, x2, y2 float64) {
+		vector.StrokeLine(dst, float32(x1), float32(y1), float32(tx), float32(ty), 5, c, true)
+		vector.StrokeLine(dst, float32(x2), float32(y2), float32(tx), float32(ty), 5, c, true)
+	}
+	switch side {
+	case 0: // top: point down
+		arm(mid-s, m, mid, m+s, mid+s, m)
+	case 1: // bottom: point up
+		arm(mid-s, end, mid, end-s, mid+s, end)
+	case 2: // left: point right
+		arm(m, mid-s, m+s, mid, m, mid+s)
+	default: // right: point left
+		arm(end, mid-s, end-s, mid, end, mid+s)
+	}
 }
 
 // DrawStatus shows the number of Cores and their total HP.

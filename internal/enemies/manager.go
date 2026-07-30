@@ -16,12 +16,12 @@ func NewManager() *Manager { return &Manager{} }
 
 func (m *Manager) Count() int { return len(m.bugs) }
 
-// Spawn adds one bug of a wave-appropriate level at a random map edge.
-func (m *Manager) Spawn(f Field, wave int) {
+// Spawn adds one bug of a wave-appropriate level at the wave's entry side.
+func (m *Manager) Spawn(f Field, wave, side int) {
 	if len(m.bugs) >= maxBugs {
 		return
 	}
-	if c, r, ok := f.RandomEdgeSpawn(); ok {
+	if c, r, ok := f.EdgeSpawn(side); ok {
 		m.bugs = append(m.bugs, &Bug{Col: c, Row: r, level: levelForWave(wave)})
 	}
 }

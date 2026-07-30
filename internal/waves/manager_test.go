@@ -40,6 +40,15 @@ func TestNextWaveWaitsForBugsCleared(t *testing.T) {
 	}
 }
 
+func TestSideIsValid(t *testing.T) {
+	for i := 0; i < 50; i++ {
+		m := NewManager()
+		if s := m.Side(); s < 0 || s > 3 {
+			t.Fatalf("side out of range: %d", s)
+		}
+	}
+}
+
 func TestWaveSizeGrows(t *testing.T) {
 	if waveSize(1) != waveSize(2) {
 		t.Fatal("count should be constant within a 2-wave step")

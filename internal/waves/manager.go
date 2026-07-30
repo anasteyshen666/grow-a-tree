@@ -4,6 +4,8 @@
 // bug from the current wave has been cleared.
 package waves
 
+import "math/rand"
+
 const (
 	prepTime     = 30.0 // seconds of calm before a wave
 	spawnCadence = 0.6  // seconds between bug releases within a wave
@@ -23,10 +25,11 @@ type Manager struct {
 	phase     phase
 	timer     float64
 	remaining int
+	side      int // edge the current/next swarm comes from (0..3)
 }
 
 func NewManager() *Manager {
-	return &Manager{phase: prep, timer: prepTime}
+	return &Manager{phase: prep, timer: prepTime, side: rand.Intn(4)}
 }
 
 // waveSize is how many bugs a wave releases. The count steps up every 2 waves
@@ -73,6 +76,7 @@ func (m *Manager) Update(dt float64, aliveBugs int) int {
 		if aliveBugs == 0 {
 			m.phase = prep
 			m.timer = prepTime
+			m.side = rand.Intn(4) // pick the next swarm's side during prep
 		}
 		return 0
 	}
@@ -80,6 +84,9 @@ func (m *Manager) Update(dt float64, aliveBugs int) int {
 }
 
 func (m *Manager) Number() int { return m.wave }
+
+// Side is the edge (0..3) the current/next swarm enters from.
+func (m *Manager) Side() int { return m.side }
 
 func (m *Manager) InPrep() bool { return m.phase == prep }
 

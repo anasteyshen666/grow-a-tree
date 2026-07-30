@@ -128,19 +128,27 @@ func (g *Grid) Damage(col, row, dmg int) {
 	}
 }
 
-// RandomEdgeSpawn returns a random empty cell on the map border, where a bug
-// can crawl in from.
-func (g *Grid) RandomEdgeSpawn() (int, int, bool) {
+// Swarm entry sides.
+const (
+	SideTop = iota
+	SideBottom
+	SideLeft
+	SideRight
+)
+
+// EdgeSpawn returns a random empty cell on the given border side, where a bug
+// can crawl in from — so a whole wave enters from one side.
+func (g *Grid) EdgeSpawn(side int) (int, int, bool) {
 	for try := 0; try < 40; try++ {
 		var c, r int
-		switch rand.Intn(4) {
-		case 0:
+		switch side {
+		case SideTop:
 			c, r = rand.Intn(Cols), 0
-		case 1:
+		case SideBottom:
 			c, r = rand.Intn(Cols), Rows-1
-		case 2:
+		case SideLeft:
 			c, r = 0, rand.Intn(Rows)
-		default:
+		default: // SideRight
 			c, r = Cols-1, rand.Intn(Rows)
 		}
 		if g.cells[r][c] == Empty {

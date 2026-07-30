@@ -4,7 +4,7 @@ package enemies
 // toward the network or toward rot bait, what to gnaw, and how to damage it.
 // world.Grid implements it.
 type Field interface {
-	RandomEdgeSpawn() (col, row int, ok bool)
+	EdgeSpawn(side int) (col, row int, ok bool)
 	NextStep(col, row int) (col2, row2 int, ok bool)
 	NextRotStep(col, row int) (col2, row2 int, ok bool)
 	AdjacentTarget(col, row int) (col2, row2 int, ok bool)

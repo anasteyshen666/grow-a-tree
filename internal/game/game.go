@@ -242,7 +242,7 @@ func (g *Game) updatePlaying() {
 	g.res.Update(secondsPerTick, energyMult, waterMult, upkeep)
 
 	for n := g.waves.Update(secondsPerTick, g.bugs.Count()); n > 0; n-- {
-		g.bugs.Spawn(g.grid, g.waves.Number())
+		g.bugs.Spawn(g.grid, g.waves.Number(), g.waves.Side())
 	}
 	g.bugs.Update(secondsPerTick, g.grid)
 
@@ -333,6 +333,9 @@ func (g *Game) drawPlaying(screen *ebiten.Image) {
 	}
 	g.bugs.Draw(g.field, world.CellSize)
 	g.fx.Draw(g.field)
+	if g.state == statePlaying && g.waves.InPrep() {
+		ui.DrawTelegraph(g.field, g.waves.Side(), fieldPx)
+	}
 	g.applyBloom()
 
 	scale, ox, oy := g.fieldMetrics()
