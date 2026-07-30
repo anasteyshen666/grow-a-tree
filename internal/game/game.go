@@ -3,7 +3,9 @@ package game
 
 import (
 	"fmt"
+	"image"
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -42,18 +44,21 @@ const (
 )
 
 type Game struct {
-	grid   *world.Grid
-	res    *resources.Resources
-	bugs   *enemies.Manager
-	waves  *waves.Manager
-	plants *plants.Manager
-	fx     *fx.Manager
-	field  *ebiten.Image
-	bloom  *ebiten.Image
+	grid        *world.Grid
+	res         *resources.Resources
+	bugs        *enemies.Manager
+	waves       *waves.Manager
+	plants      *plants.Manager
+	fx          *fx.Manager
+	field       *ebiten.Image
+	bloom       *ebiten.Image
+	lightmap    *ebiten.Image
+	lightSprite *ebiten.Image
 
 	screenW, screenH int
 	state            state
 	high             int
+	night            float64 // 0 = day, 1 = full night
 }
 
 func New() *Game {
@@ -73,7 +78,83 @@ func (g *Game) startRun() {
 	g.waves = waves.NewManager()
 	g.plants = plants.NewManager()
 	g.fx = fx.New(world.CellSize)
+	g.night = 0
 	g.state = statePlaying
+}
+
+const (
+	lightSpriteSize   = 128
+	ambientNight      = 0.14 // brightness of unlit areas at full night
+	rootLightRadius   = 34.0
+	coreLightRadius   = 48.0
+	cursorLightRadius = 95.0
+)
+
+// multiplyBlend composites the lightmap over the field: result = light * scene.
+var multiplyBlend = ebiten.Blend{
+	BlendFactorSourceRGB:        ebiten.BlendFactorDestinationColor,
+	BlendFactorSourceAlpha:      ebiten.BlendFactorDestinationAlpha,
+	BlendFactorDestinationRGB:   ebiten.BlendFactorZero,
+	BlendFactorDestinationAlpha: ebiten.BlendFactorZero,
+	BlendOperationRGB:           ebiten.BlendOperationAdd,
+	BlendOperationAlpha:         ebiten.BlendOperationAdd,
+}
+
+func makeLightSprite(size int) *ebiten.Image {
+	img := image.NewRGBA(image.Rect(0, 0, size, size))
+	c := float64(size) / 2
+	for y := 0; y < size; y++ {
+		for x := 0; x < size; x++ {
+			d := math.Hypot(float64(x)+0.5-c, float64(y)+0.5-c) / c
+			a := 1 - d
+			if a < 0 {
+				a = 0
+			}
+			a *= a // softer falloff
+			v := uint8(255 * a)
+			img.SetRGBA(x, y, color.RGBA{v, v, v, v})
+		}
+	}
+	return ebiten.NewImageFromImage(img)
+}
+
+// applyLight darkens the field at night, carving out light around the cursor,
+// the Cores, and the living root network.
+func (g *Game) applyLight() {
+	if g.night < 0.02 {
+		return
+	}
+	if g.lightSprite == nil {
+		g.lightSprite = makeLightSprite(lightSpriteSize)
+	}
+	if g.lightmap == nil {
+		g.lightmap = ebiten.NewImage(fieldPx, fieldPx)
+	}
+	amb := uint8(255 * (1 - g.night*(1-ambientNight)))
+	g.lightmap.Fill(color.RGBA{amb, amb, amb, 255})
+
+	add := func(fx, fy, radius float64) {
+		op := &ebiten.DrawImageOptions{Blend: ebiten.BlendLighter, Filter: ebiten.FilterLinear}
+		s := radius * 2 / float64(lightSpriteSize)
+		op.GeoM.Scale(s, s)
+		op.GeoM.Translate(fx-radius, fy-radius)
+		g.lightmap.DrawImage(g.lightSprite, op)
+	}
+
+	half := float64(world.CellSize) / 2
+	g.grid.VisitLit(func(col, row int, strong bool) {
+		r := rootLightRadius
+		if strong {
+			r = coreLightRadius
+		}
+		add(float64(col*world.CellSize)+half, float64(row*world.CellSize)+half, r)
+	})
+
+	cx, cy := ebiten.CursorPosition()
+	scale, ox, oy := g.fieldMetrics()
+	add((float64(cx)-ox)/scale, (float64(cy)-oy)/scale, cursorLightRadius)
+
+	g.field.DrawImage(g.lightmap, &ebiten.DrawImageOptions{Blend: multiplyBlend})
 }
 
 const (
@@ -234,6 +315,13 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) updatePlaying() {
+	// Night falls while a wave is active, lifts during prep.
+	target := 0.0
+	if !g.waves.InPrep() {
+		target = 1.0
+	}
+	g.night += (target - g.night) * 2.5 * secondsPerTick
+
 	g.grid.Update(secondsPerTick, g.waves.Number())
 	g.res.SetCoreLinks(g.grid.CoreMerges())
 	g.res.AddWater(g.grid.MineWater(secondsPerTick, g.plants.NearThorn))
@@ -337,6 +425,7 @@ func (g *Game) drawPlaying(screen *ebiten.Image) {
 		ui.DrawTelegraph(g.field, g.waves.Side(), fieldPx)
 	}
 	g.applyBloom()
+	g.applyLight()
 
 	scale, ox, oy := g.fieldMetrics()
 	op := &ebiten.DrawImageOptions{Filter: ebiten.FilterLinear}

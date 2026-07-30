@@ -38,3 +38,20 @@ func (g *Grid) recomputeConnectivity() {
 func (g *Grid) IsConnected(col, row int) bool {
 	return g.InBounds(col, row) && g.connected[row][col]
 }
+
+// VisitLit calls fn for every cell that emits light at night: Cores (strong)
+// and connected Roots (faint).
+func (g *Grid) VisitLit(fn func(col, row int, strong bool)) {
+	for r := 0; r < Rows; r++ {
+		for c := 0; c < Cols; c++ {
+			switch g.cells[r][c] {
+			case Core:
+				fn(c, r, true)
+			case Root:
+				if g.connected[r][c] {
+					fn(c, r, false)
+				}
+			}
+		}
+	}
+}
