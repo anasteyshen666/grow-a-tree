@@ -84,7 +84,7 @@ func (g *Game) startRun() {
 
 const (
 	lightSpriteSize   = 128
-	ambientNight      = 0.14 // brightness of unlit areas at full night
+	ambientNight      = 0.06 // brightness of unlit areas at full night
 	rootLightRadius   = 34.0
 	coreLightRadius   = 48.0
 	cursorLightRadius = 95.0
@@ -315,9 +315,14 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) updatePlaying() {
-	// Night falls while a wave is active, lifts during prep.
+	// Day/night alternates per wave: odd waves (and their prep) are day, even
+	// waves are night. era is the wave the current phase belongs to.
+	era := g.waves.Number()
+	if g.waves.InPrep() {
+		era++
+	}
 	target := 0.0
-	if !g.waves.InPrep() {
+	if era%2 == 0 {
 		target = 1.0
 	}
 	g.night += (target - g.night) * 2.5 * secondsPerTick
